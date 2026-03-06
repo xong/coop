@@ -57,10 +57,10 @@ class TaskFormType extends AbstractType
                 'class' => User::class,
                 'label' => 'Zugewiesen an (optional)',
                 'multiple' => true,
+                'expanded' => true,
                 'required' => false,
                 'choices' => $options['members'],
                 'choice_label' => 'fullName',
-                'attr' => ['class' => 'form-input', 'size' => 5],
             ]);
     }
 

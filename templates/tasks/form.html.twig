@@ -47,8 +47,14 @@
             </div>
             <div>
                 {{ form_label(form.assignees, null, {label_attr: {class: 'form-label'}}) }}
-                <p class="text-xs text-gray-400 mb-1">Mehrfachauswahl mit Strg/Cmd</p>
-                {{ form_widget(form.assignees, {attr: {class: 'form-input'}}) }}
+                <div class="mt-1 space-y-1">
+                    {% for child in form.assignees %}
+                        <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                            {{ form_widget(child) }}
+                            {{ form_label(child) }}
+                        </label>
+                    {% endfor %}
+                </div>
                 {{ form_errors(form.assignees) }}
             </div>
             <div class="flex space-x-3 pt-2">
