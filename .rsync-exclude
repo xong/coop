@@ -1,0 +1,13 @@
+.git/
+.github/
+var/
+.env.local
+.env.*.local
+.env.dev
+.env.test
+phpunit.dist.xml
+phpunit.xml
+tests/
+compose.yaml
+compose.override.yaml
+App.md
