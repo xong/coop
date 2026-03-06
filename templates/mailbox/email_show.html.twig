@@ -1,0 +1,217 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ email.subject }}{% endblock %}
+
+{% block body %}
+<div class="mb-4">
+    <a href="{{ backUrl }}" class="text-indigo-600 hover:text-indigo-800 text-sm">&larr; Zurück zum Posteingang</a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    {# Main email content #}
+    <div class="lg:col-span-2 space-y-4">
+        {# Email header #}
+        <div class="card p-6">
+            <h1 class="text-xl font-bold text-gray-900 mb-4">{{ email.subject }}</h1>
+
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center mr-3">
+                        <span class="text-indigo-700 font-bold">{{ email.senderInitials }}</span>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-900">{{ email.fromName ?: email.fromEmail }}</p>
+                        <p class="text-sm text-gray-500">{{ email.fromEmail }}</p>
+                        {% if email.toAddresses %}
+                            <p class="text-xs text-gray-400">An: {{ email.toAddresses }}</p>
+                        {% endif %}
+                        {% if email.ccAddresses %}
+                            <p class="text-xs text-gray-400">CC: {{ email.ccAddresses }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-gray-500">{{ email.receivedAt|date('d.m.Y H:i') }}</p>
+                    <span class="badge-{{ email.statusColor }} mt-1">{{ email.statusLabel }}</span>
+                </div>
+            </div>
+
+            {# Email body #}
+            <div class="border-t border-gray-100 pt-4">
+                {% if email.bodyHtml %}
+                    <div class="prose prose-sm max-w-none text-gray-700" style="font-size:0.875rem;line-height:1.6;">
+                        {{ email.bodyHtml|raw }}
+                    </div>
+                {% else %}
+                    <pre class="whitespace-pre-wrap text-sm text-gray-700 font-sans">{{ email.bodyText }}</pre>
+                {% endif %}
+            </div>
+
+            {# Attachments #}
+            {% if email.attachments|length > 0 %}
+                <div class="border-t border-gray-100 pt-4 mt-4">
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase mb-2">Anhänge ({{ email.attachments|length }})</h4>
+                    <div class="flex flex-wrap gap-2">
+                        {% for att in email.attachments %}
+                            <a href="{{ asset(att.path) }}" target="_blank"
+                               class="flex items-center space-x-2 px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 text-sm">
+                                <span>&#128206;</span>
+                                <span class="text-gray-700">{{ att.name }}</span>
+                                <span class="text-gray-400 text-xs">({{ (att.size / 1024)|round(1) }} KB)</span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            {# Action buttons #}
+            <div class="border-t border-gray-100 pt-4 mt-4 flex flex-wrap gap-2">
+                <a href="{{ path('app_email_reply', {id: email.id}) }}" class="btn-primary btn-sm">
+                    &#8629; Antworten
+                </a>
+
+                {# Status change #}
+                {% set statuses = [
+                    {value: 'new', label: 'Neu'},
+                    {value: 'in_progress', label: 'In Bearbeitung'},
+                    {value: 'done', label: 'Erledigt'},
+                    {value: 'archived', label: 'Archivieren'},
+                ] %}
+                {% for s in statuses %}
+                    {% if s.value != email.status %}
+                        <form method="post" action="{{ path('app_email_status', {id: email.id, status: s.value}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('email_status_' ~ email.id) }}">
+                            <button type="submit" class="btn-secondary btn-sm">{{ s.label }}</button>
+                        </form>
+                    {% endif %}
+                {% endfor %}
+
+                <form method="post" action="{{ path('app_email_delete', {id: email.id}) }}"
+                      class="ml-auto"
+                      onsubmit="return confirm('E-Mail wirklich löschen?')">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_email_' ~ email.id) }}">
+                    <button type="submit" class="btn-danger btn-sm">Löschen</button>
+                </form>
+            </div>
+        </div>
+
+        {# Comments #}
+        <div class="card p-6">
+            <h3 class="font-semibold text-gray-900 mb-4">Interne Notizen ({{ email.comments|length }})</h3>
+
+            {% if email.comments is empty %}
+                <p class="text-gray-400 text-sm">Noch keine Notizen.</p>
+            {% else %}
+                <div class="space-y-4 mb-4">
+                    {% for comment in email.comments %}
+                        <div class="flex items-start space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                                <span class="text-gray-600 text-xs font-bold">
+                                    {{ comment.author.firstName|first }}{{ comment.author.lastName|first }}
+                                </span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="bg-gray-50 rounded-lg px-4 py-3">
+                                    <p class="text-sm font-medium text-gray-900">{{ comment.author.fullName }}</p>
+                                    <p class="text-sm text-gray-700 mt-1 whitespace-pre-wrap">{{ comment.content }}</p>
+                                </div>
+                                <p class="text-xs text-gray-400 mt-1 ml-1">{{ comment.createdAt|date('d.m.Y H:i') }}</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post" action="{{ path('app_email_comment', {id: email.id}) }}" class="mt-4">
+                <input type="hidden" name="_token" value="{{ csrf_token('email_comment_' ~ email.id) }}">
+                <textarea name="content" rows="3" placeholder="Interne Notiz hinzufügen..."
+                    class="form-input w-full"></textarea>
+                <div class="mt-2">
+                    <button type="submit" class="btn-primary btn-sm">Notiz speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# Sidebar #}
+    <div class="space-y-4">
+        {# Assignment #}
+        <div class="card p-5">
+            <h3 class="font-semibold text-gray-900 mb-3">Zuweisung</h3>
+            {% set members = project ? project.members : organization.members %}
+            <form method="post" action="{{ path('app_email_assign', {id: email.id}) }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('email_assign_' ~ email.id) }}">
+                <select name="user_id" class="form-input w-full text-sm" onchange="this.form.submit()">
+                    <option value="">Nicht zugewiesen</option>
+                    {% for member in members %}
+                        <option value="{{ member.user.id }}" {{ email.assignedTo and email.assignedTo.id == member.user.id ? 'selected' : '' }}>
+                            {{ member.user.fullName }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </form>
+            {% if email.assignedTo %}
+                <p class="text-xs text-gray-400 mt-2">Zugewiesen an: {{ email.assignedTo.fullName }}</p>
+            {% endif %}
+        </div>
+
+        {# Linking #}
+        <div class="card p-5">
+            <h3 class="font-semibold text-gray-900 mb-3">Verlinken</h3>
+            <form method="post" action="{{ path('app_email_link', {id: email.id}) }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('email_link_' ~ email.id) }}">
+
+                <div class="mb-3">
+                    <label class="form-label">Mit Thema verlinken</label>
+                    <select name="topic_id" class="form-input w-full text-sm">
+                        <option value="">-- kein Thema --</option>
+                        {% for topic in topics %}
+                            <option value="{{ topic.id }}" {{ email.linkedTopic and email.linkedTopic.id == topic.id ? 'selected' : '' }}>
+                                {{ topic.title|slice(0, 50) }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Mit Projekt verlinken</label>
+                    <select name="project_id" class="form-input w-full text-sm">
+                        <option value="">-- kein Projekt --</option>
+                        {% for proj in projects %}
+                            <option value="{{ proj.id }}" {{ email.linkedProject and email.linkedProject.id == proj.id ? 'selected' : '' }}>
+                                {{ proj.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-secondary btn-sm w-full">Verlinkung speichern</button>
+            </form>
+
+            {% if email.linkedTopic %}
+                <div class="mt-3 p-2 bg-indigo-50 rounded text-xs">
+                    <span class="text-indigo-600">&#128172;</span>
+                    <a href="{{ path('app_topic_show', {id: email.linkedTopic.id}) }}" class="text-indigo-700 hover:underline">
+                        {{ email.linkedTopic.title }}
+                    </a>
+                </div>
+            {% endif %}
+            {% if email.linkedProject %}
+                <div class="mt-2 p-2 bg-green-50 rounded text-xs">
+                    <span class="text-green-600">&#128193;</span>
+                    <a href="{{ path('app_project_show', {slug: organization.slug, projectSlug: email.linkedProject.slug}) }}" class="text-green-700 hover:underline">
+                        {{ email.linkedProject.name }}
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        {# Mailbox info #}
+        <div class="card p-5">
+            <h3 class="font-semibold text-gray-900 mb-2">Postfach</h3>
+            <p class="text-sm text-gray-600">{{ email.mailbox.name }}</p>
+            <p class="text-xs text-gray-400">{{ email.mailbox.fromEmail }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

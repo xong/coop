@@ -1,0 +1,91 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Aufgaben{% endblock %}
+
+{% block body %}
+<div class="mb-6 flex items-center justify-between">
+    <div>
+        {% if project %}
+            <nav class="text-sm text-gray-500 mb-1">
+                <a href="{{ path('app_organization_show', {slug: organization.slug}) }}" class="hover:text-indigo-600">{{ organization.name }}</a>
+                <span class="mx-1">/</span>
+                <a href="{{ path('app_project_show', {slug: organization.slug, projectSlug: project.slug}) }}" class="hover:text-indigo-600">{{ project.name }}</a>
+            </nav>
+        {% endif %}
+        <h1 class="text-2xl font-bold text-gray-900">Aufgaben</h1>
+    </div>
+    <div class="flex space-x-2">
+        <a href="{{ calendarUrl }}" class="btn-secondary btn-sm">&#128197; Kalender</a>
+        <a href="{{ newUrl }}" class="btn-primary btn-sm">+ Neue Aufgabe</a>
+    </div>
+</div>
+
+{# Status filter #}
+<div class="flex space-x-2 mb-6" x-data>
+    {% set statuses = {'': 'Alle', 'open': 'Offen', 'in_progress': 'In Bearbeitung', 'done': 'Erledigt', 'cancelled': 'Abgebrochen'} %}
+    {% for val, label in statuses %}
+        {% if project %}
+            <a href="{{ path('app_project_tasks', {slug: organization.slug, projectSlug: project.slug, status: val}) }}"
+        {% else %}
+            <a href="{{ path('app_org_tasks', {slug: organization.slug, status: val}) }}"
+        {% endif %}
+            class="px-3 py-1.5 rounded-full text-sm font-medium transition-colors {{ currentStatus == val or (val == '' and currentStatus is null) ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' }}">
+            {{ label }}
+        </a>
+    {% endfor %}
+</div>
+
+{% if tasks is empty %}
+    <div class="card p-12 text-center">
+        <div class="text-4xl mb-3">&#9989;</div>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">Keine Aufgaben</h3>
+        <p class="text-gray-500 mb-6">Erstelle die erste Aufgabe für diesen Bereich.</p>
+        <a href="{{ newUrl }}" class="btn-primary">Aufgabe erstellen</a>
+    </div>
+{% else %}
+    <div class="space-y-2">
+        {% for task in tasks %}
+            <div class="card px-5 py-4 flex items-center space-x-4 hover:shadow-md transition-shadow group">
+                {# Status icon #}
+                <div class="flex-shrink-0">
+                    {% if task.status == 'done' %}
+                        <span class="text-green-500 text-xl">&#10003;</span>
+                    {% elseif task.status == 'cancelled' %}
+                        <span class="text-gray-400 text-xl">&#x2715;</span>
+                    {% elseif task.status == 'in_progress' %}
+                        <span class="text-blue-500 text-xl">&#9654;</span>
+                    {% else %}
+                        <span class="text-gray-300 text-xl">&#9675;</span>
+                    {% endif %}
+                </div>
+
+                {# Content #}
+                <div class="flex-1 min-w-0">
+                    <a href="{{ path('app_task_show', {id: task.id}) }}"
+                        class="font-medium text-gray-900 group-hover:text-indigo-700 {{ task.status == 'done' ? 'line-through text-gray-400' : '' }}">
+                        {{ task.title }}
+                    </a>
+                    <div class="flex items-center space-x-3 mt-1">
+                        <span class="{{ task.priorityColor }} text-xs">{{ task.priorityLabel }}</span>
+                        {% if task.dueDate %}
+                            <span class="text-xs {{ task.isOverdue ? 'text-red-500 font-medium' : 'text-gray-400' }}">
+                                &#128197; {{ task.dueDate|date('d.m.Y') }}
+                                {% if task.isOverdue %} (überfällig){% endif %}
+                            </span>
+                        {% endif %}
+                        {% if task.assignees is not empty %}
+                            <span class="text-xs text-gray-400">
+                                &#128100; {{ task.assignees|map(u => u.firstName)|join(', ') }}
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <a href="{{ path('app_task_edit', {id: task.id}) }}" class="btn-secondary btn-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                    Bearbeiten
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endblock %}

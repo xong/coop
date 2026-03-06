@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php:*)",
+      "Read(//c/xampp/htdocs/**)",
+      "Bash(composer create-project symfony/skeleton coop_setup --no-interaction)",
+      "Bash(cp:*)",
+      "Bash(composer require:*)",
+      "Bash(ls:*)",
+      "Bash(grep:*)"
+    ]
+  }
+}

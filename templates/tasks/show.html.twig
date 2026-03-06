@@ -1,0 +1,110 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ task.title }}{% endblock %}
+
+{% block body %}
+{% set org = task.organization %}
+{% set project = task.project %}
+
+<div class="mb-4 text-sm text-gray-500">
+    <a href="{{ path('app_organization_show', {slug: org.slug}) }}" class="hover:text-indigo-600">{{ org.name }}</a>
+    {% if project %}
+        <span class="mx-1">/</span>
+        <a href="{{ path('app_project_show', {slug: org.slug, projectSlug: project.slug}) }}" class="hover:text-indigo-600">{{ project.name }}</a>
+        <span class="mx-1">/</span>
+        <a href="{{ path('app_project_tasks', {slug: org.slug, projectSlug: project.slug}) }}" class="hover:text-indigo-600">Aufgaben</a>
+    {% else %}
+        <span class="mx-1">/</span>
+        <a href="{{ path('app_org_tasks', {slug: org.slug}) }}" class="hover:text-indigo-600">Aufgaben</a>
+    {% endif %}
+</div>
+
+<div class="max-w-3xl">
+    <div class="card p-6 mb-6">
+        <div class="flex items-start justify-between mb-4">
+            <div class="flex-1">
+                <h1 class="text-2xl font-bold text-gray-900 {{ task.status == 'done' ? 'line-through text-gray-400' : '' }}">
+                    {{ task.title }}
+                </h1>
+                <div class="flex flex-wrap items-center gap-2 mt-2">
+                    <span class="{{ task.priorityColor }}">{{ task.priorityLabel }}</span>
+                    {% if task.status == 'done' %}
+                        <span class="badge-green">Erledigt</span>
+                    {% elseif task.status == 'in_progress' %}
+                        <span class="badge-blue">In Bearbeitung</span>
+                    {% elseif task.status == 'cancelled' %}
+                        <span class="badge-gray">Abgebrochen</span>
+                    {% else %}
+                        <span class="badge-gray">Offen</span>
+                    {% endif %}
+                    {% if task.isOverdue %}
+                        <span class="badge-red">Überfällig</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="flex space-x-2 ml-4">
+                <a href="{{ path('app_task_edit', {id: task.id}) }}" class="btn-secondary btn-sm">Bearbeiten</a>
+                <form method="post" action="{{ path('app_task_delete', {id: task.id}) }}"
+                    x-data @submit.prevent="if(confirm('Aufgabe löschen?')) $el.submit()">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_task_' ~ task.id) }}">
+                    <button class="btn-danger btn-sm">Löschen</button>
+                </form>
+            </div>
+        </div>
+
+        {% if task.description %}
+            <div class="text-gray-700 whitespace-pre-line mb-4 bg-gray-50 rounded-lg p-4">{{ task.description }}</div>
+        {% endif %}
+
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+            {% if task.dueDate %}
+                <div>
+                    <p class="text-gray-400 text-xs uppercase font-medium mb-1">Fällig am</p>
+                    <p class="{{ task.isOverdue ? 'text-red-600 font-medium' : 'text-gray-700' }}">
+                        {{ task.dueDate|date('d.m.Y') }}
+                    </p>
+                </div>
+            {% endif %}
+            <div>
+                <p class="text-gray-400 text-xs uppercase font-medium mb-1">Erstellt von</p>
+                <p class="text-gray-700">{{ task.createdBy.fullName }}</p>
+            </div>
+            <div>
+                <p class="text-gray-400 text-xs uppercase font-medium mb-1">Erstellt am</p>
+                <p class="text-gray-700">{{ task.createdAt|date('d.m.Y') }}</p>
+            </div>
+            {% if task.completedAt %}
+                <div>
+                    <p class="text-gray-400 text-xs uppercase font-medium mb-1">Erledigt am</p>
+                    <p class="text-green-700">{{ task.completedAt|date('d.m.Y H:i') }}</p>
+                </div>
+            {% endif %}
+            {% if task.assignees is not empty %}
+                <div class="col-span-2">
+                    <p class="text-gray-400 text-xs uppercase font-medium mb-1">Zugewiesen an</p>
+                    <div class="flex flex-wrap gap-1">
+                        {% for user in task.assignees %}
+                            <span class="badge-blue">{{ user.fullName }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Quick status change #}
+    <div class="card p-4">
+        <p class="text-sm font-medium text-gray-700 mb-3">Status ändern:</p>
+        <div class="flex flex-wrap gap-2">
+            {% for statusVal, statusLabel in {'open': 'Offen', 'in_progress': 'In Bearbeitung', 'done': 'Erledigt', 'cancelled': 'Abgebrochen'} %}
+                <form method="post" action="{{ path('app_task_status', {id: task.id, status: statusVal}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('task_status_' ~ task.id) }}">
+                    <button class="{{ task.status == statusVal ? 'btn-primary' : 'btn-secondary' }} btn-sm" {{ task.status == statusVal ? 'disabled' : '' }}>
+                        {{ statusLabel }}
+                    </button>
+                </form>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+<div class="card p-5">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold text-gray-900">&#128140; Neueste E-Mails</h3>
+    </div>
+    {% if data.emails is empty %}
+        <p class="text-sm text-gray-400">Keine E-Mails vorhanden.</p>
+    {% else %}
+        <div class="space-y-2">
+            {% for email in data.emails %}
+                <a href="{{ path('app_email_show', {id: email.id}) }}"
+                   class="flex items-start p-2 rounded-lg hover:bg-gray-50 group">
+                    <div class="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center mr-2 flex-shrink-0 mt-0.5">
+                        <span class="text-indigo-700 text-xs font-bold">
+                            {{ (email.fromName ?: email.fromEmail)|first|upper }}
+                        </span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">{{ email.subject ?: '(kein Betreff)' }}</p>
+                        <p class="text-xs text-gray-500 truncate">{{ email.fromName ?: email.fromEmail }}</p>
+                    </div>
+                    <span class="text-xs text-gray-400 ml-2 flex-shrink-0 mt-0.5">
+                        {{ email.receivedAt ? email.receivedAt|date('d.m. H:i') : '' }}
+                    </span>
+                </a>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>

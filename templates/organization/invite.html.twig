@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Benutzer einladen - {{ organization.name }}{% endblock %}
+
+{% block body %}
+<div class="max-w-md mx-auto">
+    <div class="mb-6">
+        <a href="{{ path('app_organization_members', {slug: organization.slug}) }}" class="text-indigo-600 hover:text-indigo-800 text-sm">&larr; Mitglieder</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-2">Benutzer einladen</h1>
+        <p class="text-gray-500 text-sm mt-1">Zu: <strong>{{ organization.name }}</strong></p>
+    </div>
+
+    <div class="card p-6">
+        {{ form_start(form, {attr: {class: 'space-y-5'}}) }}
+            <div>
+                {{ form_label(form.email, null, {label_attr: {class: 'form-label'}}) }}
+                {{ form_widget(form.email, {attr: {class: 'form-input', placeholder: 'max@beispiel.de'}}) }}
+                {{ form_errors(form.email) }}
+            </div>
+            <div>
+                {{ form_label(form.role, null, {label_attr: {class: 'form-label'}}) }}
+                {{ form_widget(form.role, {attr: {class: 'form-input'}}) }}
+                {{ form_errors(form.role) }}
+            </div>
+            <div class="bg-blue-50 rounded-lg p-3 text-sm text-blue-700">
+                <strong>Hinweis:</strong> Nach dem Absenden erhaltst du einen Einladungslink, den du an die Person senden kannst.
+            </div>
+            <div class="flex space-x-3">
+                <button type="submit" class="btn-primary">Einladungslink erstellen</button>
+                <a href="{{ path('app_organization_members', {slug: organization.slug}) }}" class="btn-secondary">Abbrechen</a>
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block body %}
+<div class="mb-6 flex items-center justify-between">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-900">Willkommen, {{ app.user.firstName }}!</h1>
+        <p class="text-gray-500 mt-1">Deine persönliche Übersicht.</p>
+    </div>
+    <a href="{{ path('app_dashboard_settings') }}" class="btn-secondary btn-sm">
+        &#9881; Widgets anpassen
+    </a>
+</div>
+
+{% if widgets|filter(w => w.isEnabled)|length == 0 %}
+    <div class="card p-10 text-center">
+        <div class="text-4xl mb-3">&#9881;</div>
+        <h3 class="font-medium text-gray-900 mb-2">Alle Widgets deaktiviert</h3>
+        <a href="{{ path('app_dashboard_settings') }}" class="btn-primary mt-2 inline-block">Widgets anpassen</a>
+    </div>
+{% else %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {% for widget in widgets %}
+            {% if widget.isEnabled %}
+                {% set data = widgetData[widget.widgetType] ?? {} %}
+                {% include ('dashboard/widgets/' ~ widget.widgetType ~ '.html.twig') with {widget: widget, data: data} only %}
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,88 @@
+<div class="min-h-full">
+    {# Navbar #}
+    <nav class="bg-indigo-700 shadow-lg" x-data="{ mobileOpen: false }">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <a href="{{ path('app_dashboard') }}" class="flex-shrink-0 flex items-center text-white font-bold text-xl">
+                        <span class="text-2xl mr-2">&#129309;</span> coop
+                    </a>
+                    <div class="hidden md:flex ml-8 space-x-2">
+                        <a href="{{ path('app_dashboard') }}" class="text-indigo-100 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                            Dashboard
+                        </a>
+                        <a href="{{ path('app_organizations') }}" class="text-indigo-100 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                            Organisationen
+                        </a>
+                    </div>
+                </div>
+
+                <div class="hidden md:flex items-center space-x-3">
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" @click.away="open = false"
+                            class="flex items-center space-x-2 text-indigo-100 hover:text-white transition-colors focus:outline-none">
+                            {% if app.user.avatar %}
+                                <img src="{{ asset(app.user.avatar) }}" class="w-8 h-8 rounded-full object-cover" alt="Avatar">
+                            {% else %}
+                                <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-sm font-bold">
+                                    {{ app.user.firstName|first }}{{ app.user.lastName|first }}
+                                </div>
+                            {% endif %}
+                            <span class="text-sm font-medium">{{ app.user.fullName }}</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        <div x-show="open" x-transition
+                            class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 border border-gray-200">
+                            <a href="{{ path('app_profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Mein Profil</a>
+                            <a href="{{ path('app_profile_edit') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Profil bearbeiten</a>
+                            <div class="border-t border-gray-100 my-1"></div>
+                            <a href="{{ path('app_logout') }}" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50">Abmelden</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="md:hidden">
+                    <button @click="mobileOpen = !mobileOpen" class="text-indigo-200 hover:text-white focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path x-show="!mobileOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                            <path x-show="mobileOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div x-show="mobileOpen" class="md:hidden bg-indigo-800 px-2 pt-2 pb-3 space-y-1">
+            <a href="{{ path('app_dashboard') }}" class="block text-indigo-100 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
+            <a href="{{ path('app_organizations') }}" class="block text-indigo-100 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Organisationen</a>
+            <div class="border-t border-indigo-700 pt-2 mt-2">
+                <a href="{{ path('app_profile') }}" class="block text-indigo-100 hover:text-white px-3 py-2 rounded-md text-sm">Mein Profil</a>
+                <a href="{{ path('app_logout') }}" class="block text-red-300 hover:text-white px-3 py-2 rounded-md text-sm">Abmelden</a>
+            </div>
+        </div>
+    </nav>
+
+    {# Flash messages #}
+    {% for type, messages in app.flashes %}
+        {% for message in messages %}
+            {% set colors = {
+                'success': 'bg-green-50 border-green-400 text-green-800',
+                'error': 'bg-red-50 border-red-400 text-red-800',
+                'warning': 'bg-yellow-50 border-yellow-400 text-yellow-800',
+                'info': 'bg-blue-50 border-blue-400 text-blue-800'
+            } %}
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4" x-data="{ show: true }" x-show="show">
+                <div class="flex items-center justify-between p-4 border-l-4 rounded-lg {{ colors[type] ?? 'bg-gray-50 border-gray-400 text-gray-800' }}">
+                    <span>{{ message }}</span>
+                    <button @click="show = false" class="ml-4 opacity-60 hover:opacity-100">&times;</button>
+                </div>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {% block body %}{% endblock %}
+    </main>
+</div>

@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mein Profil{% endblock %}
+
+{% block body %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6 flex items-center justify-between">
+        <h1 class="text-2xl font-bold text-gray-900">Mein Profil</h1>
+        <a href="{{ path('app_profile_edit') }}" class="btn-secondary">Bearbeiten</a>
+    </div>
+
+    <div class="card p-6">
+        <div class="flex items-center mb-6">
+            {% if app.user.avatar %}
+                <img src="{{ asset(app.user.avatar) }}" class="w-20 h-20 rounded-full object-cover mr-4" alt="Avatar">
+            {% else %}
+                <div class="w-20 h-20 rounded-full bg-indigo-100 flex items-center justify-center mr-4">
+                    <span class="text-indigo-700 font-bold text-3xl">
+                        {{ app.user.firstName|first }}{{ app.user.lastName|first }}
+                    </span>
+                </div>
+            {% endif %}
+            <div>
+                <h2 class="text-xl font-semibold text-gray-900">{{ app.user.fullName }}</h2>
+                <p class="text-gray-500">{{ app.user.email }}</p>
+                <p class="text-gray-400 text-sm mt-1">Mitglied seit {{ app.user.createdAt|date('d.m.Y') }}</p>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-100 pt-4 space-y-3">
+            <div>
+                <span class="form-label">Mitgliedschaften</span>
+                <p class="text-gray-700">{{ app.user.organizationMemberships|length }} Organisationen</p>
+            </div>
+        </div>
+
+        <div class="mt-6 flex space-x-3">
+            <a href="{{ path('app_profile_edit') }}" class="btn-primary">Profil bearbeiten</a>
+            <a href="{{ path('app_profile_change_password') }}" class="btn-secondary">Passwort andern</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

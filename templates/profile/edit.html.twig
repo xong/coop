@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Profil bearbeiten{% endblock %}
+
+{% block body %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+        <a href="{{ path('app_profile') }}" class="text-indigo-600 hover:text-indigo-800 text-sm">&larr; Zuruck zum Profil</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-2">Profil bearbeiten</h1>
+    </div>
+
+    <div class="card p-6">
+        {{ form_start(form, {attr: {class: 'space-y-5', enctype: 'multipart/form-data'}}) }}
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    {{ form_label(form.firstName, null, {label_attr: {class: 'form-label'}}) }}
+                    {{ form_widget(form.firstName, {attr: {class: 'form-input'}}) }}
+                    {{ form_errors(form.firstName) }}
+                </div>
+                <div>
+                    {{ form_label(form.lastName, null, {label_attr: {class: 'form-label'}}) }}
+                    {{ form_widget(form.lastName, {attr: {class: 'form-input'}}) }}
+                    {{ form_errors(form.lastName) }}
+                </div>
+            </div>
+
+            <div>
+                {{ form_label(form.email, null, {label_attr: {class: 'form-label'}}) }}
+                {{ form_widget(form.email, {attr: {class: 'form-input'}}) }}
+                {{ form_errors(form.email) }}
+            </div>
+
+            <div>
+                {{ form_label(form.avatarFile, null, {label_attr: {class: 'form-label'}}) }}
+                {% if app.user.avatar %}
+                    <img src="{{ asset(app.user.avatar) }}" class="w-16 h-16 rounded-full object-cover mb-2">
+                {% endif %}
+                {{ form_widget(form.avatarFile, {attr: {class: 'block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100'}}) }}
+                {{ form_errors(form.avatarFile) }}
+            </div>
+
+            <div class="flex space-x-3 pt-2">
+                <button type="submit" class="btn-primary">Speichern</button>
+                <a href="{{ path('app_profile') }}" class="btn-secondary">Abbrechen</a>
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

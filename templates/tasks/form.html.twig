@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ task.id ? 'Aufgabe bearbeiten' : 'Neue Aufgabe' }}{% endblock %}
+
+{% block body %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+        <a href="{{ backUrl }}" class="text-indigo-600 hover:text-indigo-800 text-sm">&larr; Zurück</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-2">
+            {{ task.id ? 'Aufgabe bearbeiten' : 'Neue Aufgabe erstellen' }}
+        </h1>
+        {% if project %}
+            <p class="text-sm text-gray-500 mt-1">Projekt: <strong>{{ project.name }}</strong></p>
+        {% else %}
+            <p class="text-sm text-gray-500 mt-1">Organisation: <strong>{{ organization.name }}</strong></p>
+        {% endif %}
+    </div>
+
+    <div class="card p-6">
+        {{ form_start(form, {attr: {class: 'space-y-5'}}) }}
+            <div>
+                {{ form_label(form.title, null, {label_attr: {class: 'form-label'}}) }}
+                {{ form_widget(form.title, {attr: {class: 'form-input'}}) }}
+                {{ form_errors(form.title) }}
+            </div>
+            <div>
+                {{ form_label(form.description, null, {label_attr: {class: 'form-label'}}) }}
+                {{ form_widget(form.description, {attr: {class: 'form-input'}}) }}
+                {{ form_errors(form.description) }}
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    {{ form_label(form.priority, null, {label_attr: {class: 'form-label'}}) }}
+                    {{ form_widget(form.priority, {attr: {class: 'form-input'}}) }}
+                    {{ form_errors(form.priority) }}
+                </div>
+                <div>
+                    {{ form_label(form.status, null, {label_attr: {class: 'form-label'}}) }}
+                    {{ form_widget(form.status, {attr: {class: 'form-input'}}) }}
+                    {{ form_errors(form.status) }}
+                </div>
+            </div>
+            <div>
+                {{ form_label(form.dueDate, null, {label_attr: {class: 'form-label'}}) }}
+                {{ form_widget(form.dueDate, {attr: {class: 'form-input'}}) }}
+                {{ form_errors(form.dueDate) }}
+            </div>
+            <div>
+                {{ form_label(form.assignees, null, {label_attr: {class: 'form-label'}}) }}
+                <p class="text-xs text-gray-400 mb-1">Mehrfachauswahl mit Strg/Cmd</p>
+                {{ form_widget(form.assignees, {attr: {class: 'form-input'}}) }}
+                {{ form_errors(form.assignees) }}
+            </div>
+            <div class="flex space-x-3 pt-2">
+                <button type="submit" class="btn-primary">{{ task.id ? 'Speichern' : 'Aufgabe erstellen' }}</button>
+                <a href="{{ backUrl }}" class="btn-secondary">Abbrechen</a>
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+<div class="card p-5">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold text-gray-900">&#128172; Aktuelle Themen</h3>
+    </div>
+    {% if data.topics is empty %}
+        <p class="text-sm text-gray-400">Keine aktuellen Themen.</p>
+    {% else %}
+        <div class="space-y-2">
+            {% for topic in data.topics %}
+                <a href="{{ path('app_topic_show', {id: topic.id}) }}"
+                   class="flex items-start p-2 rounded-lg hover:bg-gray-50 group">
+                    {% if topic.isPinned %}
+                        <span class="text-indigo-400 mr-2 flex-shrink-0">&#128204;</span>
+                    {% else %}
+                        <span class="text-gray-300 mr-2 flex-shrink-0">&#128172;</span>
+                    {% endif %}
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 group-hover:text-indigo-700 truncate">{{ topic.title }}</p>
+                        <p class="text-xs text-gray-400">
+                            {{ topic.organization.name }}
+                            &middot; {{ topic.postCount }} Beiträge
+                            &middot; {{ topic.lastActivityAt|date('d.m. H:i') }}
+                        </p>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>

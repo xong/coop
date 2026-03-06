@@ -1,0 +1,119 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ conversation.getDisplayTitle(app.user) }}{% endblock %}
+
+{% block body %}
+<div class="max-w-2xl mx-auto flex flex-col" style="height: calc(100vh - 8rem);">
+
+    {# Header #}
+    <div class="flex items-center justify-between mb-4 flex-shrink-0">
+        <div class="flex items-center space-x-3">
+            <a href="{{ path('app_messages') }}" class="text-gray-400 hover:text-gray-600">&#8592;</a>
+            {% if conversation.isDirect %}
+                {% set other = conversation.getOtherParticipant(app.user) %}
+                <div class="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center">
+                    {% if other and other.avatar %}
+                        <img src="{{ asset(other.avatar) }}" class="w-9 h-9 rounded-full object-cover">
+                    {% else %}
+                        <span class="text-indigo-700 font-bold text-sm">
+                            {{ other ? other.firstName|first ~ other.lastName|first : '?' }}
+                        </span>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center">
+                    <span class="text-purple-700">&#128101;</span>
+                </div>
+            {% endif %}
+            <div>
+                <h1 class="font-semibold text-gray-900">{{ conversation.getDisplayTitle(app.user) }}</h1>
+                <p class="text-xs text-gray-400">
+                    {% for p in conversation.participants %}{{ p.user.firstName }}{% if not loop.last %}, {% endif %}{% endfor %}
+                </p>
+            </div>
+        </div>
+
+        {# Options dropdown #}
+        <div x-data="{open: false}" class="relative">
+            <button @click="open = !open" class="text-gray-400 hover:text-gray-600 px-2 py-1 rounded">&#8942;</button>
+            <div x-show="open" @click.outside="open = false" x-cloak
+                 class="absolute right-0 mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
+                <form method="post" action="{{ path('app_message_leave', {id: conversation.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('leave_' ~ conversation.id) }}">
+                    <button type="submit"
+                            onclick="return confirm('Unterhaltung verlassen?')"
+                            class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                        Verlassen
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {# Messages area #}
+    <div class="flex-1 overflow-y-auto card p-4 space-y-3 mb-4" id="messages-area">
+        {% if conversation.messages is empty %}
+            <p class="text-center text-gray-400 text-sm py-8">Noch keine Nachrichten. Schreibe die erste!</p>
+        {% else %}
+            {% for msg in conversation.messages %}
+                {% set isMe = msg.sender == app.user %}
+                <div class="flex {{ isMe ? 'justify-end' : 'justify-start' }} group">
+                    {% if not isMe %}
+                        <div class="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center mr-2 flex-shrink-0 self-end">
+                            <span class="text-indigo-700 text-xs font-bold">{{ msg.sender.firstName|first }}{{ msg.sender.lastName|first }}</span>
+                        </div>
+                    {% endif %}
+
+                    <div class="max-w-xs lg:max-w-md">
+                        {% if not isMe and conversation.isGroup %}
+                            <p class="text-xs text-gray-400 mb-1 ml-1">{{ msg.sender.firstName }}</p>
+                        {% endif %}
+
+                        {% if msg.isDeleted %}
+                            <div class="px-4 py-2 rounded-2xl {{ isMe ? 'rounded-br-sm' : 'rounded-bl-sm' }} bg-gray-100">
+                                <p class="text-sm text-gray-400 italic">Nachricht gelöscht</p>
+                            </div>
+                        {% else %}
+                            <div class="px-4 py-2 rounded-2xl {{ isMe ? 'bg-indigo-600 text-white rounded-br-sm' : 'bg-white border border-gray-200 text-gray-800 rounded-bl-sm' }}">
+                                <p class="text-sm whitespace-pre-wrap">{{ msg.content }}</p>
+                            </div>
+                        {% endif %}
+
+                        <div class="flex items-center mt-1 {{ isMe ? 'justify-end' : 'justify-start' }} space-x-2">
+                            <p class="text-xs text-gray-400">{{ msg.createdAt|date('H:i') }}</p>
+                            {% if isMe and not msg.isDeleted %}
+                                <form method="post"
+                                      action="{{ path('app_message_delete_msg', {id: conversation.id, msgId: msg.id}) }}"
+                                      class="opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_msg_' ~ msg.id) }}">
+                                    <button type="submit" class="text-xs text-gray-300 hover:text-red-400" title="Löschen">&#10005;</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    {# Input area #}
+    <div class="flex-shrink-0">
+        <form method="post" action="{{ path('app_message_show', {id: conversation.id}) }}"
+              class="flex items-end gap-2">
+            <input type="hidden" name="_token" value="{{ csrf_token('msg_' ~ conversation.id) }}">
+            <textarea name="content" rows="2"
+                      placeholder="Nachricht schreiben..."
+                      class="form-input flex-1 resize-none"
+                      onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();this.form.submit();}"></textarea>
+            <button type="submit" class="btn-primary px-4 py-2 self-end">&#10148;</button>
+        </form>
+        <p class="text-xs text-gray-400 mt-1">Enter zum Senden &middot; Shift+Enter für neue Zeile</p>
+    </div>
+</div>
+
+<script>
+    // Auto-scroll to bottom
+    const area = document.getElementById('messages-area');
+    if (area) area.scrollTop = area.scrollHeight;
+</script>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Neue E-Mail - {{ config.name }}{% endblock %}
+
+{% block body %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+        <a href="{{ backUrl }}" class="text-indigo-600 hover:text-indigo-800 text-sm">&larr; Zurück zum Posteingang</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-2">Neue E-Mail</h1>
+        <p class="text-sm text-gray-500 mt-1">Von: {{ config.fromName }} &lt;{{ config.fromEmail }}&gt;</p>
+    </div>
+
+    <div class="card p-6">
+        <form method="post" x-data="composePicker()" id="compose-form">
+            <input type="hidden" name="_token" value="{{ csrf_token('compose_' ~ config.id) }}">
+
+            {# Contact picker + To field #}
+            <div class="mb-4">
+                <label class="form-label">An</label>
+
+                {% if contacts|length > 0 %}
+                    <div class="flex gap-2 mb-2">
+                        <select @change="pickContact($event)"
+                                class="form-input flex-1 text-sm">
+                            <option value="">— Kontakt auswählen —</option>
+                            {% for contact in contacts %}
+                                {% if contact.email %}
+                                    <option value="{{ contact.email }}" data-name="{{ contact.fullName }}">
+                                        {{ contact.fullName }}{% if contact.company %} ({{ contact.company }}){% endif %} &lt;{{ contact.email }}&gt;
+                                    </option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                        <span class="text-gray-400 self-center text-sm">oder manuell:</span>
+                    </div>
+                {% endif %}
+
+                <input type="email" name="to" x-ref="toInput"
+                       value="{{ to }}" required
+                       placeholder="empfaenger@beispiel.de"
+                       class="form-input w-full">
+                <input type="hidden" name="to_name" x-ref="toName" value="{{ toName }}">
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Betreff</label>
+                <input type="text" name="subject" value="{{ subject }}"
+                       placeholder="Betreff der E-Mail"
+                       class="form-input w-full">
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Nachricht</label>
+                <textarea name="body" rows="12"
+                          placeholder="Ihre Nachricht..."
+                          class="form-input w-full" required></textarea>
+            </div>
+
+            <div class="flex space-x-3">
+                <button type="submit" class="btn-primary">&#9993; Senden</button>
+                <a href="{{ backUrl }}" class="btn-secondary">Abbrechen</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function composePicker() {
+    return {
+        pickContact(event) {
+            const opt = event.target.selectedOptions[0];
+            if (opt && opt.value) {
+                this.$refs.toInput.value = opt.value;
+                this.$refs.toName.value = opt.dataset.name || '';
+            }
+        }
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Postfach wählen{% endblock %}
+
+{% block body %}
+<div class="max-w-lg mx-auto">
+    <div class="mb-6">
+        <a href="{{ path('app_organization_show', {slug: organization.slug}) }}" class="text-indigo-600 hover:text-indigo-800 text-sm">&larr; Zurück</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-2">Postfach wählen</h1>
+        <p class="text-gray-500 text-sm mt-1">Über welches Postfach soll die E-Mail gesendet werden?</p>
+    </div>
+
+    {% if mailboxes is empty %}
+        <div class="card p-8 text-center">
+            <div class="text-4xl mb-3">&#128231;</div>
+            <h3 class="font-medium text-gray-900 mb-2">Kein Postfach konfiguriert</h3>
+            <p class="text-gray-500">Richten Sie zuerst ein E-Mail-Postfach ein.</p>
+            {% if organization.isAdmin(app.user) %}
+                <a href="{{ path('app_org_mailbox_new', {slug: organization.slug}) }}" class="btn-primary mt-4 inline-block">
+                    Postfach einrichten
+                </a>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="space-y-3">
+            {% for config in mailboxes %}
+                {% if config.project %}
+                    {% set composeUrl = path('app_project_mailbox_compose', {
+                        slug: organization.slug,
+                        projectSlug: config.project.slug,
+                        id: config.id,
+                        to: to,
+                        to_name: toName,
+                        subject: subject
+                    }) %}
+                {% else %}
+                    {% set composeUrl = path('app_org_mailbox_compose', {
+                        slug: organization.slug,
+                        id: config.id,
+                        to: to,
+                        to_name: toName,
+                        subject: subject
+                    }) %}
+                {% endif %}
+                <a href="{{ composeUrl }}" class="card p-5 flex items-center hover:shadow-md transition-shadow group">
+                    <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center mr-4">
+                        <span class="text-indigo-700 text-lg">&#128231;</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-900 group-hover:text-indigo-700">{{ config.name }}</p>
+                        <p class="text-sm text-gray-500">{{ config.fromEmail }}{% if config.project %} &middot; {{ config.project.name }}{% endif %}</p>
+                    </div>
+                    <span class="text-gray-400">&#8594;</span>
+                </a>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Forum{% if project %} - {{ project.name }}{% else %} - {{ organization.name }}{% endif %}{% endblock %}
+
+{% block body %}
+<div class="mb-6 flex items-center justify-between">
+    <div>
+        <nav class="text-sm text-gray-500 mb-1">
+            {% if project %}
+                <a href="{{ path('app_organization_show', {slug: organization.slug}) }}" class="hover:text-indigo-600">{{ organization.name }}</a>
+                <span class="mx-1">/</span>
+                <a href="{{ path('app_project_show', {slug: organization.slug, projectSlug: project.slug}) }}" class="hover:text-indigo-600">{{ project.name }}</a>
+            {% else %}
+                <a href="{{ path('app_organization_show', {slug: organization.slug}) }}" class="hover:text-indigo-600">{{ organization.name }}</a>
+            {% endif %}
+        </nav>
+        <h1 class="text-2xl font-bold text-gray-900">Forum</h1>
+    </div>
+    <a href="{{ newTopicUrl }}" class="btn-primary">
+        + Neues Thema
+    </a>
+</div>
+
+{% if topics is empty %}
+    <div class="card p-12 text-center">
+        <div class="text-4xl mb-3">&#128172;</div>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">Noch keine Themen</h3>
+        <p class="text-gray-500 mb-6">Starte das erste Gespräch!</p>
+        <a href="{{ newTopicUrl }}" class="btn-primary">Thema erstellen</a>
+    </div>
+{% else %}
+    <div class="card overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thema</th>
+                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Beiträge</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Letzter Beitrag</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Erstellt von</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for topic in topics %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center space-x-2">
+                                {% if topic.isPinned %}
+                                    <span title="Angeheftet" class="text-yellow-500">&#128204;</span>
+                                {% endif %}
+                                {% if topic.isClosed %}
+                                    <span title="Geschlossen" class="text-gray-400">&#128274;</span>
+                                {% endif %}
+                                <a href="{{ path('app_topic_show', {id: topic.id}) }}"
+                                    class="font-medium text-gray-900 hover:text-indigo-700">
+                                    {{ topic.title }}
+                                </a>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-center text-sm text-gray-500">
+                            {{ topic.postCount }}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500">
+                            {% if topic.lastPost %}
+                                <span class="text-gray-700">{{ topic.lastPost.author.fullName }}</span>
+                                <span class="text-gray-400 text-xs block">{{ topic.lastActivityAt|date('d.m.Y H:i') }}</span>
+                            {% else %}
+                                &mdash;
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500">
+                            {{ topic.createdBy.fullName }}
+                            <span class="text-gray-400 text-xs block">{{ topic.createdAt|date('d.m.Y') }}</span>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}
+{% endblock %}

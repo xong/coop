@@ -1,0 +1,41 @@
+<div class="card p-5">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold text-gray-900">&#128172; Nachrichten</h3>
+        <div class="flex items-center space-x-2">
+            {% if data.unread > 0 %}
+                <span class="badge-blue">{{ data.unread }} neu</span>
+            {% endif %}
+            <a href="{{ path('app_messages') }}" class="text-xs text-indigo-600 hover:underline">Alle</a>
+        </div>
+    </div>
+    {% if data.conversations is empty %}
+        <p class="text-sm text-gray-400 mb-3">Noch keine Nachrichten.</p>
+        <a href="{{ path('app_message_new') }}" class="btn-secondary btn-sm">Schreiben</a>
+    {% else %}
+        <div class="space-y-2">
+            {% for conv in data.conversations %}
+                {% set unread = conv.getUnreadCount(app.user) %}
+                <a href="{{ path('app_message_show', {id: conv.id}) }}"
+                   class="flex items-center p-2 rounded-lg hover:bg-gray-50 group {{ unread > 0 ? 'bg-blue-50/40' : '' }}">
+                    <div class="w-7 h-7 rounded-full {{ conv.isDirect ? 'bg-indigo-100' : 'bg-purple-100' }} flex items-center justify-center mr-2 flex-shrink-0">
+                        {% if conv.isDirect %}
+                            {% set other = conv.getOtherParticipant(app.user) %}
+                            <span class="text-indigo-700 text-xs font-bold">{{ other ? other.firstName|first ~ other.lastName|first : '?' }}</span>
+                        {% else %}
+                            <span class="text-purple-700 text-xs">&#128101;</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm {{ unread > 0 ? 'font-semibold text-gray-900' : 'text-gray-700' }} truncate">
+                            {{ conv.getDisplayTitle(app.user) }}
+                        </p>
+                    </div>
+                    {% if unread > 0 %}
+                        <span class="w-4 h-4 rounded-full bg-indigo-600 text-white text-xs flex items-center justify-center ml-1">{{ unread }}</span>
+                    {% endif %}
+                </a>
+            {% endfor %}
+        </div>
+        <a href="{{ path('app_message_new') }}" class="btn-secondary btn-sm mt-3 inline-block">+ Neu</a>
+    {% endif %}
+</div>

@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Neues Thema{% endblock %}
+
+{% block body %}
+<div class="max-w-3xl mx-auto">
+    <div class="mb-6">
+        <a href="{{ backUrl }}" class="text-indigo-600 hover:text-indigo-800 text-sm">&larr; Zurück zum Forum</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-2">Neues Thema erstellen</h1>
+        {% if project %}
+            <p class="text-sm text-gray-500 mt-1">in: <strong>{{ organization.name }}</strong> / <strong>{{ project.name }}</strong></p>
+        {% else %}
+            <p class="text-sm text-gray-500 mt-1">in: <strong>{{ organization.name }}</strong></p>
+        {% endif %}
+    </div>
+
+    <div class="card p-6">
+        {{ form_start(form, {attr: {class: 'space-y-5', enctype: 'multipart/form-data'}}) }}
+            <div>
+                {{ form_label(form.title, null, {label_attr: {class: 'form-label'}}) }}
+                {{ form_widget(form.title, {attr: {class: 'form-input text-lg font-medium'}}) }}
+                {{ form_errors(form.title) }}
+            </div>
+            <div>
+                {{ form_label(form.content, 'Erster Beitrag', {label_attr: {class: 'form-label'}}) }}
+                {{ form_widget(form.content, {attr: {class: 'form-input'}}) }}
+                {{ form_errors(form.content) }}
+            </div>
+            <div>
+                {{ form_label(form.attachments, null, {label_attr: {class: 'form-label'}}) }}
+                {{ form_widget(form.attachments, {attr: {class: 'block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100'}}) }}
+                {{ form_errors(form.attachments) }}
+                <p class="text-xs text-gray-400 mt-1">Mehrere Dateien möglich, je max. 20 MB</p>
+            </div>
+            <div class="flex space-x-3 pt-2">
+                <button type="submit" class="btn-primary">Thema veröffentlichen</button>
+                <a href="{{ backUrl }}" class="btn-secondary">Abbrechen</a>
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

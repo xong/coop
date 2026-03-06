@@ -1,0 +1,33 @@
+<div class="card p-5">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold text-gray-900">&#9989; Meine Aufgaben</h3>
+    </div>
+    {% if data.tasks is empty %}
+        <p class="text-sm text-gray-400">Keine offenen Aufgaben.</p>
+    {% else %}
+        <div class="space-y-2">
+            {% for task in data.tasks %}
+                <a href="{{ path('app_task_show', {id: task.id}) }}"
+                   class="flex items-start p-2 rounded-lg hover:bg-gray-50 group">
+                    <span class="w-2 h-2 rounded-full mt-1.5 mr-2 flex-shrink-0
+                        {% if task.isOverdue %}bg-red-500
+                        {% elseif task.priority == 'urgent' %}bg-orange-400
+                        {% elseif task.priority == 'high' %}bg-yellow-400
+                        {% else %}bg-gray-300{% endif %}"></span>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm text-gray-900 group-hover:text-indigo-700 truncate">{{ task.title }}</p>
+                        <p class="text-xs text-gray-400">
+                            {{ task.organization.name }}
+                            {% if task.dueDate %}
+                                &middot; <span class="{{ task.isOverdue ? 'text-red-500 font-medium' : '' }}">
+                                    Fällig {{ task.dueDate|date('d.m.') }}
+                                </span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <span class="badge-{{ task.priorityColor }} text-xs ml-1 flex-shrink-0">{{ task.priorityLabel }}</span>
+                </a>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>

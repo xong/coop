@@ -1,0 +1,120 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ config.name }} - Posteingang{% endblock %}
+
+{% block body %}
+<div class="mb-6">
+    <div class="text-sm text-gray-500 mb-2">
+        <a href="{{ path('app_organization_show', {slug: organization.slug}) }}" class="hover:text-indigo-600">{{ organization.name }}</a>
+        {% if project %}
+            <span class="mx-2">/</span>
+            <a href="{{ path('app_project_show', {slug: organization.slug, projectSlug: project.slug}) }}" class="hover:text-indigo-600">{{ project.name }}</a>
+            <span class="mx-2">/</span>
+            <a href="{{ path('app_project_mailboxes', {slug: organization.slug, projectSlug: project.slug}) }}" class="hover:text-indigo-600">Postfächer</a>
+        {% else %}
+            <span class="mx-2">/</span>
+            <a href="{{ path('app_org_mailboxes', {slug: organization.slug}) }}" class="hover:text-indigo-600">Postfächer</a>
+        {% endif %}
+        <span class="mx-2">/</span>
+        <span>{{ config.name }}</span>
+    </div>
+
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">{{ config.name }}</h1>
+            <p class="text-gray-500 text-sm mt-1">{{ config.fromEmail }}</p>
+        </div>
+        <div class="flex items-center space-x-2">
+            {% if project %}
+                <a href="{{ path('app_project_mailbox_compose', {slug: organization.slug, projectSlug: project.slug, id: config.id}) }}"
+                   class="btn-primary btn-sm">+ Neue E-Mail</a>
+                {% if project.isAdmin(app.user) %}
+                    <form method="post" action="{{ path('app_project_mailbox_sync', {slug: organization.slug, projectSlug: project.slug, id: config.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('sync_mailbox_' ~ config.id) }}">
+                        <button type="submit" class="btn-secondary btn-sm">&#8635; Abrufen</button>
+                    </form>
+                {% endif %}
+            {% else %}
+                <a href="{{ path('app_org_mailbox_compose', {slug: organization.slug, id: config.id}) }}"
+                   class="btn-primary btn-sm">+ Neue E-Mail</a>
+                {% if organization.isAdmin(app.user) %}
+                    <form method="post" action="{{ path('app_org_mailbox_sync', {slug: organization.slug, id: config.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('sync_mailbox_' ~ config.id) }}">
+                        <button type="submit" class="btn-secondary btn-sm">&#8635; Abrufen</button>
+                    </form>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{# Status filter #}
+<div class="flex space-x-2 mb-6">
+    {% set baseUrl = project
+        ? path('app_project_mailbox_inbox', {slug: organization.slug, projectSlug: project.slug, id: config.id})
+        : path('app_org_mailbox_inbox', {slug: organization.slug, id: config.id}) %}
+    {% set filters = [
+        {label: 'Alle', value: ''},
+        {label: 'Neu', value: 'new'},
+        {label: 'In Bearbeitung', value: 'in_progress'},
+        {label: 'Erledigt', value: 'done'},
+        {label: 'Archiviert', value: 'archived'},
+    ] %}
+    {% for f in filters %}
+        <a href="{{ baseUrl }}{% if f.value %}?status={{ f.value }}{% endif %}"
+           class="px-3 py-1.5 rounded-full text-sm font-medium transition-colors
+               {% if status == f.value or (f.value == '' and not status) %}
+                   bg-indigo-600 text-white
+               {% else %}
+                   bg-white text-gray-600 hover:bg-gray-50 border border-gray-200
+               {% endif %}">
+            {{ f.label }}
+        </a>
+    {% endfor %}
+</div>
+
+{% if emails is empty %}
+    <div class="card p-10 text-center">
+        <div class="text-4xl mb-3">&#128235;</div>
+        <h3 class="font-medium text-gray-900 mb-2">Keine E-Mails gefunden</h3>
+        <p class="text-gray-500">Klicke auf "E-Mails abrufen" um neue Nachrichten zu laden.</p>
+    </div>
+{% else %}
+    <div class="card divide-y divide-gray-100">
+        {% for email in emails %}
+            <a href="{{ path('app_email_show', {id: email.id}) }}"
+               class="flex items-start p-4 hover:bg-gray-50 transition-colors group {{ not email.isRead ? 'bg-blue-50/30' : '' }}">
+                {# Avatar #}
+                <div class="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center mr-3 flex-shrink-0">
+                    <span class="text-indigo-700 text-xs font-bold">{{ email.senderInitials }}</span>
+                </div>
+
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-baseline justify-between">
+                        <span class="text-sm font-{{ email.isRead ? 'normal' : 'semibold' }} text-gray-900 truncate mr-2">
+                            {{ email.fromName ?: email.fromEmail }}
+                        </span>
+                        <span class="text-xs text-gray-400 flex-shrink-0">{{ email.receivedAt|date('d.m.Y H:i') }}</span>
+                    </div>
+                    <p class="text-sm {{ email.isRead ? 'text-gray-500' : 'text-gray-800 font-medium' }} truncate">{{ email.subject }}</p>
+                    <p class="text-xs text-gray-400 truncate mt-0.5">{{ email.bodyText|slice(0, 120)|replace({"\n": ' ', "\r": ''}) }}</p>
+                </div>
+
+                <div class="ml-3 flex items-center space-x-1 flex-shrink-0">
+                    {% if not email.isRead %}
+                        <span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span>
+                    {% endif %}
+                    <span class="badge-{{ email.statusColor }} text-xs">{{ email.statusLabel }}</span>
+                    {% if email.attachments|length > 0 %}
+                        <span class="text-gray-400 text-xs ml-1">&#128206;</span>
+                    {% endif %}
+                    {% if email.assignedTo %}
+                        <span class="text-gray-400 text-xs" title="Zugewiesen an {{ email.assignedTo.fullName }}">&#128100;</span>
+                    {% endif %}
+                </div>
+            </a>
+        {% endfor %}
+    </div>
+    <p class="text-sm text-gray-400 mt-3 text-right">{{ emails|length }} E-Mail(s)</p>
+{% endif %}
+{% endblock %}

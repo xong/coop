@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Antworten: {{ email.subject }}{% endblock %}
+
+{% block body %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+        <a href="{{ path('app_email_show', {id: email.id}) }}" class="text-indigo-600 hover:text-indigo-800 text-sm">&larr; Zurück zur E-Mail</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-2">Antworten</h1>
+    </div>
+
+    {# Original email preview #}
+    <div class="card p-4 mb-4 bg-gray-50">
+        <p class="text-xs text-gray-500 mb-1">Originalmail von {{ email.fromName ?: email.fromEmail }} &middot; {{ email.receivedAt|date('d.m.Y H:i') }}</p>
+        <p class="text-sm font-medium text-gray-700">{{ email.subject }}</p>
+        <p class="text-sm text-gray-500 mt-1 line-clamp-3">{{ email.bodyText|slice(0, 300) }}</p>
+    </div>
+
+    <div class="card p-6">
+        <form method="post" action="{{ path('app_email_reply', {id: email.id}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('email_reply_' ~ email.id) }}">
+
+            <div class="mb-4">
+                <label class="form-label">An</label>
+                <input type="text" value="{{ email.fromEmail }}" disabled class="form-input bg-gray-50 text-gray-500">
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Betreff</label>
+                <input type="text" name="subject" value="Re: {{ email.subject }}" class="form-input">
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Nachricht</label>
+                <textarea name="body" rows="10" class="form-input w-full" placeholder="Ihre Antwort..."></textarea>
+            </div>
+
+            <div class="border-t border-gray-100 pt-4 text-xs text-gray-400 mb-4">
+                Gesendet über: {{ config.fromName }} &lt;{{ config.fromEmail }}&gt; via {{ config.smtpHost }}
+            </div>
+
+            <div class="flex space-x-3">
+                <button type="submit" class="btn-primary">&#9993; Senden</button>
+                <a href="{{ path('app_email_show', {id: email.id}) }}" class="btn-secondary">Abbrechen</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ project.name }} - {{ organization.name }}{% endblock %}
+
+{% block body %}
+<div class="mb-8">
+    <div class="text-sm text-gray-500 mb-2">
+        <a href="{{ path('app_organization_show', {slug: organization.slug}) }}" class="hover:text-indigo-600">{{ organization.name }}</a>
+        <span class="mx-2">/</span>
+        <span>{{ project.name }}</span>
+    </div>
+
+    <div class="flex items-start justify-between">
+        <div>
+            <div class="flex items-center space-x-3">
+                <h1 class="text-2xl font-bold text-gray-900">{{ project.name }}</h1>
+                {% if project.isPublic %}
+                    <span class="badge-green">Offentlich</span>
+                {% else %}
+                    <span class="badge-gray">Privat</span>
+                {% endif %}
+            </div>
+            {% if project.description %}
+                <p class="text-gray-500 mt-1">{{ project.description }}</p>
+            {% endif %}
+            <p class="text-gray-400 text-sm mt-1">
+                Erstellt von {{ project.createdBy.fullName }} am {{ project.createdAt|date('d.m.Y') }}
+                &middot; {{ project.members|length }} Mitglieder
+            </p>
+        </div>
+        {% if project.isAdmin(app.user) %}
+            <div class="flex space-x-2">
+                <a href="{{ path('app_project_edit', {slug: organization.slug, projectSlug: project.slug}) }}" class="btn-secondary btn-sm">
+                    Bearbeiten
+                </a>
+                <a href="{{ path('app_project_invite', {slug: organization.slug, projectSlug: project.slug}) }}" class="btn-primary btn-sm">
+                    Einladen
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2">
+        <div class="grid grid-cols-2 gap-4">
+            <a href="{{ path('app_project_files', {slug: organization.slug, projectSlug: project.slug}) }}"
+                class="card p-5 hover:shadow-md transition-shadow group">
+                <div class="text-2xl mb-2">&#128193;</div>
+                <h3 class="font-semibold text-gray-900 group-hover:text-indigo-700">Dateien</h3>
+                <p class="text-sm text-gray-500 mt-1">Gemeinsame Dokumente und Dateien verwalten</p>
+            </a>
+            <a href="{{ path('app_project_topics', {slug: organization.slug, projectSlug: project.slug}) }}"
+                class="card p-5 hover:shadow-md transition-shadow group">
+                <div class="text-2xl mb-2">&#128172;</div>
+                <h3 class="font-semibold text-gray-900 group-hover:text-indigo-700">Forum</h3>
+                <p class="text-sm text-gray-500 mt-1">Themen diskutieren und teilen</p>
+            </a>
+            <a href="{{ path('app_project_tasks', {slug: organization.slug, projectSlug: project.slug}) }}"
+                class="card p-5 hover:shadow-md transition-shadow group">
+                <div class="text-2xl mb-2">&#9989;</div>
+                <h3 class="font-semibold text-gray-900 group-hover:text-indigo-700">Aufgaben</h3>
+                <p class="text-sm text-gray-500 mt-1">Aufgaben verwalten und zuweisen</p>
+            </a>
+            <a href="{{ path('app_project_mailboxes', {slug: organization.slug, projectSlug: project.slug}) }}"
+                class="card p-5 hover:shadow-md transition-shadow group">
+                <div class="text-2xl mb-2">&#128231;</div>
+                <h3 class="font-semibold text-gray-900 group-hover:text-indigo-700">E-Mails</h3>
+                <p class="text-sm text-gray-500 mt-1">Gemeinsame E-Mail-Postfächer verwalten</p>
+            </a>
+        </div>
+    </div>
+    <div>
+        <div class="card p-5">
+            <h3 class="font-semibold text-gray-900 mb-4">Mitglieder</h3>
+            <div class="space-y-3">
+                {% for member in project.members %}
+                    <div class="flex items-center">
+                        {% if member.user.avatar %}
+                            <img src="{{ asset(member.user.avatar) }}" class="w-8 h-8 rounded-full object-cover mr-2">
+                        {% else %}
+                            <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center mr-2">
+                                <span class="text-indigo-700 text-xs font-medium">
+                                    {{ member.user.firstName|first }}{{ member.user.lastName|first }}
+                                </span>
+                            </div>
+                        {% endif %}
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900 truncate">{{ member.user.fullName }}</p>
+                        </div>
+                        {% if member.isAdmin %}
+                            <span class="badge-blue ml-1">Admin</span>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            {% if project.isAdmin(app.user) %}
+                <a href="{{ path('app_project_members', {slug: organization.slug, projectSlug: project.slug}) }}"
+                    class="mt-4 block text-center text-sm text-indigo-600 hover:text-indigo-800">
+                    Alle Mitglieder verwalten
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ config.id ? 'Postfach bearbeiten' : 'Postfach einrichten' }}{% endblock %}
+
+{% block body %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+        <a href="{{ backUrl }}" class="text-indigo-600 hover:text-indigo-800 text-sm">&larr; Zurück</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-2">
+            {{ config.id ? 'Postfach bearbeiten' : 'Neues Postfach einrichten' }}
+        </h1>
+    </div>
+
+    <div class="card p-6">
+        {{ form_start(form, {attr: {class: 'space-y-6'}}) }}
+
+        <div>
+            {{ form_label(form.name, null, {label_attr: {class: 'form-label'}}) }}
+            {{ form_widget(form.name, {attr: {class: 'form-input'}}) }}
+            {{ form_errors(form.name) }}
+        </div>
+
+        <div class="border-t border-gray-100 pt-5">
+            <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">IMAP (Empfangen)</h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    {{ form_label(form.imapHost, null, {label_attr: {class: 'form-label'}}) }}
+                    {{ form_widget(form.imapHost, {attr: {class: 'form-input'}}) }}
+                    {{ form_errors(form.imapHost) }}
+                </div>
+                <div>
+                    {{ form_label(form.imapPort, null, {label_attr: {class: 'form-label'}}) }}
+                    {{ form_widget(form.imapPort, {attr: {class: 'form-input'}}) }}
+                    {{ form_errors(form.imapPort) }}
+                </div>
+                <div>
+                    {{ form_label(form.imapEncryption, null, {label_attr: {class: 'form-label'}}) }}
+                    {{ form_widget(form.imapEncryption, {attr: {class: 'form-input'}}) }}
+                    {{ form_errors(form.imapEncryption) }}
+                </div>
+                <div>
+                    {{ form_label(form.imapUsername, null, {label_attr: {class: 'form-label'}}) }}
+                    {{ form_widget(form.imapUsername, {attr: {class: 'form-input'}}) }}
+                    {{ form_errors(form.imapUsername) }}
+                </div>
+                <div>
+                    {{ form_label(form.imapPassword, null, {label_attr: {class: 'form-label'}}) }}
+                    {{ form_widget(form.imapPassword, {attr: {class: 'form-input'}}) }}
+                    {{ form_errors(form.imapPassword) }}
+                </div>
+                <div>
+                    {{ form_label(form.imapFolder, null, {label_attr: {class: 'form-label'}}) }}
+                    {{ form_widget(form.imapFolder, {attr: {class: 'form-input'}}) }}
+                    {{ form_errors(form.imapFolder) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-100 pt-5">
+            <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-4">SMTP (Senden)</h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    {{ form_label(form.smtpHost, null, {label_attr: {class: 'form-label'}}) }}
+                    {{ form_widget(form.smtpHost, {attr: {class: 'form-input'}}) }}
+                    {{ form_errors(form.smtpHost) }}
+                </div>
+                <div>
+                    {{ form_label(form.smtpPort, null, {label_attr: {class: 'form-label'}}) }}
+                    {{ form_widget(form.smtpPort, {attr: {class: 'form-input'}}) }}
+                    {{ form_errors(form.smtpPort) }}
+                </div>
+                <div>
+                    {{ form_label(form.smtpEncryption, null, {label_attr: {class: 'form-label'}}) }}
+                    {{ form_widget(form.smtpEncryption, {attr: {class: 'form-input'}}) }}
+                    {{ form_errors(form.smtpEncryption) }}
+                </div>
+                <div>
+                    {{ form_label(form.smtpUsername, null, {label_attr: {class: 'form-label'}}) }}
+                    {{ form_widget(form.smtpUsername, {attr: {class: 'form-input'}}) }}
+                    {{ form_errors(form.smtpUsername) }}
+                </div>
+                <div>
+                    {{ form_label(form.smtpPassword, null, {label_attr: {class: 'form-label'}}) }}
+                    {{ form_widget(form.smtpPassword, {attr: {class: 'form-input'}}) }}
+                    {{ form_errors(form.smtpPassword) }}
+                </div>
+                <div>
+                    {{ form_label(form.fromEmail, null, {label_attr: {class: 'form-label'}}) }}
+                    {{ form_widget(form.fromEmail, {attr: {class: 'form-input'}}) }}
+                    {{ form_errors(form.fromEmail) }}
+                </div>
+                <div>
+                    {{ form_label(form.fromName, null, {label_attr: {class: 'form-label'}}) }}
+                    {{ form_widget(form.fromName, {attr: {class: 'form-input'}}) }}
+                    {{ form_errors(form.fromName) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-100 pt-5 flex items-center space-x-3">
+            {{ form_widget(form.isActive, {attr: {class: 'rounded border-gray-300'}}) }}
+            {{ form_label(form.isActive, null, {label_attr: {class: 'text-sm font-medium text-gray-700 cursor-pointer'}}) }}
+        </div>
+
+        <div class="flex space-x-3 pt-2">
+            <button type="submit" class="btn-primary">{{ config.id ? 'Speichern' : 'Postfach einrichten' }}</button>
+            <a href="{{ backUrl }}" class="btn-secondary">Abbrechen</a>
+        </div>
+
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

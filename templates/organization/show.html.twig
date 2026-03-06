@@ -1,0 +1,127 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ organization.name }}{% endblock %}
+
+{% block body %}
+{# Org header #}
+<div class="mb-8">
+    <div class="flex items-start justify-between">
+        <div class="flex items-center">
+            {% if organization.logo %}
+                <img src="{{ asset(organization.logo) }}" class="w-16 h-16 rounded-xl object-cover mr-4">
+            {% else %}
+                <div class="w-16 h-16 rounded-xl bg-indigo-100 flex items-center justify-center mr-4">
+                    <span class="text-indigo-700 font-bold text-2xl">{{ organization.name|first|upper }}</span>
+                </div>
+            {% endif %}
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">{{ organization.name }}</h1>
+                {% if organization.description %}
+                    <p class="text-gray-500 mt-1">{{ organization.description }}</p>
+                {% endif %}
+                <div class="flex items-center space-x-4 mt-2 text-sm text-gray-400">
+                    <span>{{ organization.members|length }} Mitglieder</span>
+                    <span>{{ organization.projects|length }} Projekte</span>
+                    <span>Erstellt am {{ organization.createdAt|date('d.m.Y') }}</span>
+                </div>
+            </div>
+        </div>
+        {% if organization.isAdmin(app.user) %}
+            <div class="flex space-x-2">
+                <a href="{{ path('app_organization_edit', {slug: organization.slug}) }}" class="btn-secondary btn-sm">
+                    Bearbeiten
+                </a>
+                <a href="{{ path('app_organization_invite', {slug: organization.slug}) }}" class="btn-primary btn-sm">
+                    Einladen
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{# Navigation tabs #}
+<div class="border-b border-gray-200 mb-8" x-data="{ tab: 'projects' }">
+    <nav class="flex space-x-8">
+        <button @click="tab = 'projects'"
+            :class="tab === 'projects' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+            class="py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+            Projekte
+        </button>
+        <a href="{{ path('app_organization_members', {slug: organization.slug}) }}"
+            class="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+            Mitglieder
+        </a>
+        <a href="{{ path('app_org_files', {slug: organization.slug}) }}"
+            class="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+            Dateien
+        </a>
+        <a href="{{ path('app_org_topics', {slug: organization.slug}) }}"
+            class="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+            Forum
+        </a>
+        <a href="{{ path('app_org_tasks', {slug: organization.slug}) }}"
+            class="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+            Aufgaben
+        </a>
+        <a href="{{ path('app_org_calendar', {slug: organization.slug}) }}"
+            class="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+            Kalender
+        </a>
+        <a href="{{ path('app_org_mailboxes', {slug: organization.slug}) }}"
+            class="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+            E-Mails
+        </a>
+        <a href="{{ path('app_org_contacts', {slug: organization.slug}) }}"
+            class="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+            Kontakte
+        </a>
+    </nav>
+</div>
+
+{# Projects section #}
+<div class="mb-6 flex items-center justify-between">
+    <h2 class="text-lg font-semibold text-gray-900">Projekte</h2>
+    <a href="{{ path('app_project_new', {slug: organization.slug}) }}" class="btn-primary btn-sm">
+        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Neues Projekt
+    </a>
+</div>
+
+{% set projects = organization.projects %}
+{% if projects is empty %}
+    <div class="card p-10 text-center">
+        <div class="text-4xl mb-3">&#128194;</div>
+        <h3 class="font-medium text-gray-900 mb-2">Noch keine Projekte</h3>
+        <p class="text-gray-500 mb-4">Erstelle das erste Projekt dieser Organisation.</p>
+        <a href="{{ path('app_project_new', {slug: organization.slug}) }}" class="btn-primary">Projekt erstellen</a>
+    </div>
+{% else %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for project in projects %}
+            {% if project.isPublic or project.isMember(app.user) %}
+                <a href="{{ path('app_project_show', {slug: organization.slug, projectSlug: project.slug}) }}"
+                    class="card p-5 hover:shadow-md transition-shadow group">
+                    <div class="flex items-start justify-between mb-2">
+                        <h3 class="font-semibold text-gray-900 group-hover:text-indigo-700 transition-colors">
+                            {{ project.name }}
+                        </h3>
+                        {% if project.isPublic %}
+                            <span class="badge-green ml-2 flex-shrink-0">Offentlich</span>
+                        {% else %}
+                            <span class="badge-gray ml-2 flex-shrink-0">Privat</span>
+                        {% endif %}
+                    </div>
+                    {% if project.description %}
+                        <p class="text-gray-500 text-sm line-clamp-2">{{ project.description }}</p>
+                    {% endif %}
+                    <div class="mt-3 text-xs text-gray-400">
+                        {{ project.members|length }} Mitglieder &middot; Erstellt {{ project.createdAt|date('d.m.Y') }}
+                    </div>
+                </a>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endif %}
+{% endblock %}

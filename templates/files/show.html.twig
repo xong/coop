@@ -1,0 +1,103 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ file.originalName }}{% endblock %}
+
+{% block body %}
+<div class="max-w-4xl mx-auto">
+    {# File header #}
+    <div class="card p-6 mb-6">
+        <div class="flex items-start justify-between">
+            <div class="flex items-center">
+                <span class="text-4xl mr-4">{{ file.icon }}</span>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-900">{{ file.originalName }}</h1>
+                    <div class="flex items-center space-x-3 mt-1 text-sm text-gray-500">
+                        <span>{{ file.fileSizeFormatted }}</span>
+                        <span>&middot;</span>
+                        <span>{{ file.mimeType }}</span>
+                        <span>&middot;</span>
+                        <span>Hochgeladen von {{ file.uploadedBy.fullName }}</span>
+                        <span>&middot;</span>
+                        <span>{{ file.createdAt|date('d.m.Y H:i') }}</span>
+                    </div>
+                    {% if file.category %}
+                        <div class="mt-1">
+                            <span class="badge-blue">{{ file.category.name }}</span>
+                        </div>
+                    {% endif %}
+                    {% if file.description %}
+                        <p class="text-gray-600 mt-2">{{ file.description }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="flex space-x-2 flex-shrink-0 ml-4">
+                <a href="{{ path('app_file_download', {id: file.id}) }}" class="btn-primary btn-sm">
+                    Herunterladen
+                </a>
+                {% if file.uploadedBy == app.user %}
+                    <form method="post" action="{{ path('app_file_delete', {id: file.id}) }}"
+                        x-data @submit.prevent="if(confirm('Datei wirklich löschen?')) $el.submit()">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete_file_' ~ file.id) }}">
+                        <button class="btn-danger btn-sm">Löschen</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if file.isImage %}
+            <div class="mt-4 border-t border-gray-100 pt-4">
+                <img src="{{ asset(file.storagePath) }}" class="max-w-full max-h-96 rounded-lg object-contain" alt="{{ file.originalName }}">
+            </div>
+        {% endif %}
+    </div>
+
+    {# Comments #}
+    <div class="card p-6">
+        <h2 class="font-semibold text-gray-900 mb-4">
+            Kommentare <span class="text-gray-400 font-normal">({{ file.comments|length }})</span>
+        </h2>
+
+        {% if file.comments is not empty %}
+            <div class="space-y-4 mb-6">
+                {% for comment in file.comments %}
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                            <span class="text-indigo-700 text-xs font-medium">
+                                {{ comment.author.firstName|first }}{{ comment.author.lastName|first }}
+                            </span>
+                        </div>
+                        <div class="flex-1 bg-gray-50 rounded-lg px-4 py-3">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-sm font-medium text-gray-900">{{ comment.author.fullName }}</span>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs text-gray-400">{{ comment.createdAt|date('d.m.Y H:i') }}</span>
+                                    {% if comment.author == app.user %}
+                                        <form method="post" action="{{ path('app_file_comment_delete', {id: comment.id}) }}"
+                                            x-data @submit.prevent="if(confirm('Kommentar löschen?')) $el.submit()">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete_comment_' ~ comment.id) }}">
+                                            <button class="text-red-400 hover:text-red-600 text-xs">Löschen</button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <p class="text-gray-700 text-sm whitespace-pre-line">{{ comment.content }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-gray-400 text-sm mb-6">Noch keine Kommentare.</p>
+        {% endif %}
+
+        {# Comment form #}
+        <div class="border-t border-gray-100 pt-4">
+            <h3 class="text-sm font-medium text-gray-700 mb-3">Kommentar hinzufügen</h3>
+            {{ form_start(commentForm, {attr: {class: 'space-y-3'}}) }}
+                {{ form_widget(commentForm.content, {attr: {class: 'form-input'}}) }}
+                {{ form_errors(commentForm.content) }}
+                <button type="submit" class="btn-primary btn-sm">Kommentar senden</button>
+            {{ form_end(commentForm) }}
+        </div>
+    </div>
+</div>
+{% endblock %}

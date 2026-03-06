@@ -1,0 +1,120 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dateien - {{ organization.name }}{% endblock %}
+
+{% block body %}
+<div class="mb-6 flex items-center justify-between">
+    <div>
+        <a href="{{ path('app_organization_show', {slug: organization.slug}) }}" class="text-indigo-600 hover:text-indigo-800 text-sm">&larr; {{ organization.name }}</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-1">Dateien</h1>
+    </div>
+    <div class="flex space-x-2">
+        <a href="{{ path('app_org_category_new', {slug: organization.slug}) }}" class="btn-secondary btn-sm">
+            + Kategorie
+        </a>
+        <a href="{{ path('app_org_file_upload', {slug: organization.slug}) }}" class="btn-primary btn-sm">
+            Datei hochladen
+        </a>
+    </div>
+</div>
+
+<div class="flex gap-6">
+    {# Sidebar: Categories #}
+    <div class="w-56 flex-shrink-0">
+        <div class="card p-4">
+            <h3 class="font-semibold text-gray-700 text-sm mb-3">Kategorien</h3>
+            <ul class="space-y-1">
+                <li>
+                    <a href="{{ path('app_org_files', {slug: organization.slug}) }}"
+                        class="block px-2 py-1.5 rounded text-sm {{ currentCategory is null ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-gray-600 hover:bg-gray-50' }}">
+                        Alle Dateien
+                    </a>
+                </li>
+                {% for cat in rootCategories %}
+                    <li>
+                        <a href="{{ path('app_org_files', {slug: organization.slug, category: cat.id}) }}"
+                            class="block px-2 py-1.5 rounded text-sm {{ currentCategory and currentCategory.id == cat.id ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-gray-600 hover:bg-gray-50' }}">
+                            &#128193; {{ cat.name }}
+                        </a>
+                        {% for child in cat.children %}
+                            <a href="{{ path('app_org_files', {slug: organization.slug, category: child.id}) }}"
+                                class="block pl-6 px-2 py-1 rounded text-xs {{ currentCategory and currentCategory.id == child.id ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-gray-500 hover:bg-gray-50' }}">
+                                &#128195; {{ child.name }}
+                            </a>
+                        {% endfor %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    {# File list #}
+    <div class="flex-1">
+        {% if currentCategory %}
+            <div class="mb-4 text-sm text-gray-500">
+                Kategorie: <strong>{{ currentCategory.name }}</strong>
+                {% if currentCategory.description %} &mdash; {{ currentCategory.description }}{% endif %}
+            </div>
+        {% endif %}
+
+        {% if files is empty %}
+            <div class="card p-10 text-center">
+                <div class="text-4xl mb-3">&#128193;</div>
+                <p class="text-gray-500">Noch keine Dateien. Lade die erste Datei hoch!</p>
+            </div>
+        {% else %}
+            <div class="card overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">Datei</th>
+                            <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kategorie</th>
+                            <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hochgeladen von</th>
+                            <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">Datum</th>
+                            <th class="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase">Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for file in files %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-5 py-3">
+                                    <a href="{{ path('app_file_show', {id: file.id}) }}" class="flex items-center group">
+                                        <span class="text-xl mr-2">{{ file.icon }}</span>
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-900 group-hover:text-indigo-700">{{ file.originalName }}</p>
+                                            <p class="text-xs text-gray-400">{{ file.fileSizeFormatted }}</p>
+                                        </div>
+                                    </a>
+                                </td>
+                                <td class="px-5 py-3 text-sm text-gray-500">
+                                    {{ file.category ? file.category.name : '—' }}
+                                </td>
+                                <td class="px-5 py-3 text-sm text-gray-500">
+                                    {{ file.uploadedBy.fullName }}
+                                </td>
+                                <td class="px-5 py-3 text-sm text-gray-400">
+                                    {{ file.createdAt|date('d.m.Y') }}
+                                </td>
+                                <td class="px-5 py-3 text-right">
+                                    <div class="flex justify-end space-x-2">
+                                        <a href="{{ path('app_file_download', {id: file.id}) }}" class="btn-secondary btn-sm" title="Herunterladen">
+                                            &#8595;
+                                        </a>
+                                        {% if file.uploadedBy == app.user or organization.isAdmin(app.user) %}
+                                            <form method="post" action="{{ path('app_file_delete', {id: file.id}) }}"
+                                                x-data @submit.prevent="if(confirm('Datei wirklich löschen?')) $el.submit()">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete_file_' ~ file.id) }}">
+                                                <button class="btn-danger btn-sm">&#x2715;</button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

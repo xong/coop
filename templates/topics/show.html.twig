@@ -1,0 +1,161 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ topic.title }}{% endblock %}
+
+{% block body %}
+{% set org = topic.organization %}
+{% set project = topic.project %}
+
+{# Breadcrumb #}
+<div class="mb-4 text-sm text-gray-500">
+    {% if project %}
+        <a href="{{ path('app_organization_show', {slug: org.slug}) }}" class="hover:text-indigo-600">{{ org.name }}</a>
+        <span class="mx-1">/</span>
+        <a href="{{ path('app_project_show', {slug: org.slug, projectSlug: project.slug}) }}" class="hover:text-indigo-600">{{ project.name }}</a>
+        <span class="mx-1">/</span>
+        <a href="{{ path('app_project_topics', {slug: org.slug, projectSlug: project.slug}) }}" class="hover:text-indigo-600">Forum</a>
+    {% else %}
+        <a href="{{ path('app_organization_show', {slug: org.slug}) }}" class="hover:text-indigo-600">{{ org.name }}</a>
+        <span class="mx-1">/</span>
+        <a href="{{ path('app_org_topics', {slug: org.slug}) }}" class="hover:text-indigo-600">Forum</a>
+    {% endif %}
+</div>
+
+{# Topic header #}
+<div class="mb-6 flex items-start justify-between">
+    <div>
+        <div class="flex items-center space-x-2 mb-1">
+            {% if topic.isPinned %}<span class="text-yellow-500" title="Angeheftet">&#128204;</span>{% endif %}
+            {% if topic.isClosed %}<span class="text-red-400" title="Geschlossen">&#128274;</span>{% endif %}
+            <h1 class="text-2xl font-bold text-gray-900">{{ topic.title }}</h1>
+        </div>
+        <p class="text-sm text-gray-500">
+            {{ topic.postCount }} Beitrag{% if topic.postCount != 1 %}e{% endif %}
+            &middot; Erstellt von {{ topic.createdBy.fullName }} am {{ topic.createdAt|date('d.m.Y') }}
+        </p>
+    </div>
+    <div class="flex space-x-2 flex-shrink-0 ml-4" x-data="{ showAdmin: false }">
+        {% set isAdmin = (project and project.isAdmin(app.user)) or (not project and org.isAdmin(app.user)) %}
+        {% if isAdmin %}
+            <div class="relative" x-data="{ open: false }">
+                <button @click="open = !open" @click.away="open = false" class="btn-secondary btn-sm">
+                    Verwalten &#9662;
+                </button>
+                <div x-show="open" x-transition class="absolute right-0 mt-1 w-44 bg-white rounded-lg shadow-lg py-1 z-10 border border-gray-200">
+                    <form method="post" action="{{ path('app_topic_pin', {id: topic.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('pin_topic_' ~ topic.id) }}">
+                        <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                            {% if topic.isPinned %}&#128205; Abheften{% else %}&#128204; Anpinnen{% endif %}
+                        </button>
+                    </form>
+                    <form method="post" action="{{ path('app_topic_close', {id: topic.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('close_topic_' ~ topic.id) }}">
+                        <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                            {% if topic.isClosed %}&#128275; Öffnen{% else %}&#128274; Schließen{% endif %}
+                        </button>
+                    </form>
+                    <form method="post" action="{{ path('app_topic_delete', {id: topic.id}) }}"
+                        x-data @submit.prevent="if(confirm('Thema wirklich löschen?')) $el.submit()">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete_topic_' ~ topic.id) }}">
+                        <button class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                            &#128465; Löschen
+                        </button>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{# Posts #}
+<div class="space-y-4 mb-8">
+    {% for post in topic.posts %}
+        <div class="card overflow-hidden" id="post-{{ post.id }}">
+            <div class="flex">
+                {# Avatar sidebar #}
+                <div class="w-20 flex-shrink-0 bg-gray-50 border-r border-gray-200 p-4 flex flex-col items-center text-center">
+                    {% if post.author.avatar %}
+                        <img src="{{ asset(post.author.avatar) }}" class="w-10 h-10 rounded-full object-cover mb-1">
+                    {% else %}
+                        <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center mb-1">
+                            <span class="text-indigo-700 text-sm font-bold">
+                                {{ post.author.firstName|first }}{{ post.author.lastName|first }}
+                            </span>
+                        </div>
+                    {% endif %}
+                    <p class="text-xs font-medium text-gray-700 leading-tight">{{ post.author.firstName }}</p>
+                    <p class="text-xs text-gray-400">{{ post.author.lastName }}</p>
+                </div>
+
+                {# Post content #}
+                <div class="flex-1 p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs text-gray-400">
+                            {{ post.createdAt|date('d.m.Y H:i') }}
+                            {% if post.isEdited %}
+                                <span class="italic">(bearbeitet)</span>
+                            {% endif %}
+                        </span>
+                        {% if post.author == app.user %}
+                            <div class="flex space-x-2">
+                                <a href="{{ path('app_topic_post_edit', {id: post.id}) }}" class="text-xs text-indigo-500 hover:text-indigo-700">Bearbeiten</a>
+                                <form method="post" action="{{ path('app_topic_post_delete', {id: post.id}) }}"
+                                    x-data @submit.prevent="if(confirm('Beitrag löschen?')) $el.submit()">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_post_' ~ post.id) }}">
+                                    <button class="text-xs text-red-400 hover:text-red-600">Löschen</button>
+                                </form>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="prose prose-sm max-w-none text-gray-800 whitespace-pre-line">{{ post.content }}</div>
+
+                    {# Attachments #}
+                    {% if post.attachments is not empty %}
+                        <div class="mt-4 pt-4 border-t border-gray-100">
+                            <p class="text-xs font-medium text-gray-500 mb-2">Anhänge:</p>
+                            <div class="flex flex-wrap gap-2">
+                                {% for attachment in post.attachments %}
+                                    {% if attachment.isImage %}
+                                        <a href="{{ asset(attachment.storagePath) }}" target="_blank">
+                                            <img src="{{ asset(attachment.storagePath) }}" class="h-20 w-20 object-cover rounded border border-gray-200 hover:opacity-80">
+                                        </a>
+                                    {% else %}
+                                        <a href="{{ asset(attachment.storagePath) }}" download="{{ attachment.originalName }}"
+                                            class="flex items-center space-x-1 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded text-sm text-gray-700 hover:bg-gray-100">
+                                            <span>&#128206;</span>
+                                            <span>{{ attachment.originalName }}</span>
+                                            <span class="text-xs text-gray-400">({{ attachment.fileSizeFormatted }})</span>
+                                        </a>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+{# Reply form #}
+{% if topic.isClosed %}
+    <div class="card p-4 text-center text-gray-500">
+        <span>&#128274;</span> Dieses Thema ist geschlossen. Keine weiteren Antworten möglich.
+    </div>
+{% elseif replyForm %}
+    <div class="card p-6">
+        <h2 class="font-semibold text-gray-900 mb-4">Antworten</h2>
+        {{ form_start(replyForm, {attr: {class: 'space-y-4', enctype: 'multipart/form-data'}}) }}
+            {{ form_widget(replyForm.content, {attr: {class: 'form-input'}}) }}
+            {{ form_errors(replyForm.content) }}
+            <div>
+                {{ form_label(replyForm.attachments, null, {label_attr: {class: 'form-label'}}) }}
+                {{ form_widget(replyForm.attachments, {attr: {class: 'block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100'}}) }}
+                {{ form_errors(replyForm.attachments) }}
+            </div>
+            <button type="submit" class="btn-primary">Antwort senden</button>
+        {{ form_end(replyForm) }}
+    </div>
+{% endif %}
+{% endblock %}

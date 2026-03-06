@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ organization.name }} bearbeiten{% endblock %}
+
+{% block body %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+        <a href="{{ path('app_organization_show', {slug: organization.slug}) }}" class="text-indigo-600 hover:text-indigo-800 text-sm">&larr; Zuruck</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-2">Organisation bearbeiten</h1>
+    </div>
+    <div class="card p-6">
+        {{ form_start(form, {attr: {class: 'space-y-5', enctype: 'multipart/form-data'}}) }}
+            <div>
+                {{ form_label(form.name, null, {label_attr: {class: 'form-label'}}) }}
+                {{ form_widget(form.name, {attr: {class: 'form-input'}}) }}
+                {{ form_errors(form.name) }}
+            </div>
+            <div>
+                {{ form_label(form.description, null, {label_attr: {class: 'form-label'}}) }}
+                {{ form_widget(form.description, {attr: {class: 'form-input'}}) }}
+                {{ form_errors(form.description) }}
+            </div>
+            <div>
+                {{ form_label(form.logoFile, null, {label_attr: {class: 'form-label'}}) }}
+                {% if organization.logo %}
+                    <img src="{{ asset(organization.logo) }}" class="w-16 h-16 rounded-lg object-cover mb-2">
+                {% endif %}
+                {{ form_widget(form.logoFile, {attr: {class: 'block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100'}}) }}
+                {{ form_errors(form.logoFile) }}
+            </div>
+            <div class="flex space-x-3 pt-2">
+                <button type="submit" class="btn-primary">Speichern</button>
+                <a href="{{ path('app_organization_show', {slug: organization.slug}) }}" class="btn-secondary">Abbrechen</a>
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

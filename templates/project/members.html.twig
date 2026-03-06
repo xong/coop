@@ -1,0 +1,88 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mitglieder - {{ project.name }}{% endblock %}
+
+{% block body %}
+<div class="mb-6 flex items-center justify-between">
+    <div>
+        <a href="{{ path('app_project_show', {slug: organization.slug, projectSlug: project.slug}) }}" class="text-indigo-600 hover:text-indigo-800 text-sm">&larr; {{ project.name }}</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-1">Projektmitglieder</h1>
+    </div>
+    {% if project.isAdmin(app.user) %}
+        <a href="{{ path('app_project_invite', {slug: organization.slug, projectSlug: project.slug}) }}" class="btn-primary">
+            Mitglied einladen
+        </a>
+    {% endif %}
+</div>
+
+<div class="card overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Benutzer</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rolle</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Beigetreten</th>
+                {% if project.isAdmin(app.user) %}
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aktionen</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for member in project.members %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            {% if member.user.avatar %}
+                                <img src="{{ asset(member.user.avatar) }}" class="w-9 h-9 rounded-full object-cover mr-3">
+                            {% else %}
+                                <div class="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center mr-3">
+                                    <span class="text-indigo-700 font-medium text-sm">
+                                        {{ member.user.firstName|first }}{{ member.user.lastName|first }}
+                                    </span>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">{{ member.user.fullName }}</p>
+                                <p class="text-xs text-gray-400">{{ member.user.email }}</p>
+                            </div>
+                            {% if member.user == app.user %}
+                                <span class="ml-2 badge-blue">Du</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if member.isAdmin %}
+                            <span class="badge-blue">Administrator</span>
+                        {% else %}
+                            <span class="badge-gray">Mitglied</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ member.joinedAt|date('d.m.Y') }}
+                    </td>
+                    {% if project.isAdmin(app.user) %}
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                            {% if member.user != app.user and member.user != project.createdBy %}
+                                <div class="flex justify-end space-x-2">
+                                    <form method="post" action="{{ path('app_project_member_role', {slug: organization.slug, projectSlug: project.slug, userId: member.user.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('role_project_member_' ~ member.user.id) }}">
+                                        <button type="submit" class="btn-secondary btn-sm">
+                                            {% if member.isAdmin %}Zum Mitglied{% else %}Zum Admin{% endif %}
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{{ path('app_project_member_remove', {slug: organization.slug, projectSlug: project.slug, userId: member.user.id}) }}"
+                                        x-data
+                                        @submit.prevent="if(confirm('Mitglied wirklich entfernen?')) $el.submit()">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('remove_project_member_' ~ member.user.id) }}">
+                                        <button type="submit" class="btn-danger btn-sm">Entfernen</button>
+                                    </form>
+                                </div>
+                            {% endif %}
+                        </td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

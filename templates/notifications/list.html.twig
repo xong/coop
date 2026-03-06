@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Benachrichtigungen{% endblock %}
+
+{% block body %}
+<div class="max-w-2xl mx-auto">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">Benachrichtigungen</h1>
+        <div class="flex items-center space-x-2">
+            <a href="{{ path('app_notification_settings') }}" class="btn-secondary btn-sm">Einstellungen</a>
+            {% if notifications|filter(n => not n.isRead)|length > 0 %}
+                <form method="post" action="{{ path('app_notifications_mark_read') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('notif_mark_read') }}">
+                    <button type="submit" class="btn-secondary btn-sm">Alle gelesen</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if notifications is empty %}
+        <div class="card p-10 text-center">
+            <div class="text-4xl mb-3">&#128276;</div>
+            <h3 class="font-medium text-gray-900 mb-2">Keine Benachrichtigungen</h3>
+            <p class="text-gray-500">Du bist auf dem neuesten Stand!</p>
+        </div>
+    {% else %}
+        <div class="card divide-y divide-gray-100">
+            {% for notif in notifications %}
+                <div class="flex items-start p-4 {{ not notif.isRead ? 'bg-blue-50/30' : '' }}">
+                    <div class="w-2 h-2 rounded-full mt-2 mr-3 flex-shrink-0 {{ not notif.isRead ? 'bg-indigo-500' : 'bg-transparent' }}"></div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-{{ notif.isRead ? 'normal' : 'semibold' }} text-gray-900">{{ notif.title }}</p>
+                        <p class="text-sm text-gray-500 mt-0.5">{{ notif.body }}</p>
+                        <p class="text-xs text-gray-400 mt-1">{{ notif.createdAt|date('d.m.Y H:i') }}</p>
+                    </div>
+                    {% if notif.url %}
+                        <form method="post" action="{{ path('app_notification_read', {id: notif.id}) }}" class="ml-3 flex-shrink-0">
+                            <input type="hidden" name="_token" value="{{ csrf_token('notif_read_' ~ notif.id) }}">
+                            <button type="submit" class="text-xs text-indigo-600 hover:underline">Ansehen &#8594;</button>
+                        </form>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

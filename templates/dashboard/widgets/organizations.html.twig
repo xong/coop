@@ -1,0 +1,29 @@
+<div class="card p-5">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold text-gray-900">&#127963; Meine Organisationen</h3>
+        <a href="{{ path('app_organizations') }}" class="text-xs text-indigo-600 hover:underline">Alle</a>
+    </div>
+    {% if data.orgs is empty %}
+        <p class="text-sm text-gray-400">Noch keine Organisationen.</p>
+        <a href="{{ path('app_organization_new') }}" class="btn-primary btn-sm mt-3 inline-block">Erstellen</a>
+    {% else %}
+        <div class="space-y-2">
+            {% for org in data.orgs|slice(0, 5) %}
+                <a href="{{ path('app_organization_show', {slug: org.slug}) }}"
+                   class="flex items-center p-2 rounded-lg hover:bg-gray-50 group">
+                    {% if org.logo %}
+                        <img src="{{ asset(org.logo) }}" class="w-7 h-7 rounded object-cover mr-2">
+                    {% else %}
+                        <div class="w-7 h-7 rounded bg-indigo-100 flex items-center justify-center mr-2">
+                            <span class="text-indigo-700 text-xs font-bold">{{ org.name|first|upper }}</span>
+                        </div>
+                    {% endif %}
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 group-hover:text-indigo-700 truncate">{{ org.name }}</p>
+                    </div>
+                    <span class="text-xs text-gray-400">{{ org.projects|length }} Proj.</span>
+                </a>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>

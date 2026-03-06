@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard anpassen{% endblock %}
+
+{% block body %}
+<div class="max-w-xl mx-auto">
+    <div class="mb-6">
+        <a href="{{ path('app_dashboard') }}" class="text-indigo-600 hover:text-indigo-800 text-sm">&larr; Zum Dashboard</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-2">Dashboard anpassen</h1>
+        <p class="text-gray-500 text-sm mt-1">Aktiviere, deaktiviere und ordne deine Widgets.</p>
+    </div>
+
+    <div class="card divide-y divide-gray-100">
+        {% for widget in widgets %}
+            <div class="flex items-center p-4">
+                <div class="flex-1">
+                    <p class="font-medium text-gray-900">{{ widget.label }}</p>
+                    <p class="text-xs text-gray-400">{{ widget.isEnabled ? 'Aktiv' : 'Deaktiviert' }}</p>
+                </div>
+
+                {# Move up/down #}
+                <div class="flex items-center space-x-1 mr-3">
+                    {% if not loop.first %}
+                        <form method="post" action="{{ path('app_dashboard_widget_move', {id: widget.id, direction: 'up'}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('widget_move_' ~ widget.id) }}">
+                            <button type="submit" class="p-1 text-gray-400 hover:text-gray-700" title="Nach oben">&#8593;</button>
+                        </form>
+                    {% else %}
+                        <span class="p-1 w-6"></span>
+                    {% endif %}
+                    {% if not loop.last %}
+                        <form method="post" action="{{ path('app_dashboard_widget_move', {id: widget.id, direction: 'down'}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('widget_move_' ~ widget.id) }}">
+                            <button type="submit" class="p-1 text-gray-400 hover:text-gray-700" title="Nach unten">&#8595;</button>
+                        </form>
+                    {% else %}
+                        <span class="p-1 w-6"></span>
+                    {% endif %}
+                </div>
+
+                {# Toggle #}
+                <form method="post" action="{{ path('app_dashboard_widget_toggle', {id: widget.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('widget_toggle_' ~ widget.id) }}">
+                    <button type="submit"
+                            class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors
+                                {{ widget.isEnabled ? 'bg-indigo-600' : 'bg-gray-200' }}">
+                        <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform
+                                {{ widget.isEnabled ? 'translate-x-6' : 'translate-x-1' }}"></span>
+                    </button>
+                </form>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="mt-4 text-center">
+        <a href="{{ path('app_notification_settings') }}" class="text-sm text-indigo-600 hover:underline">
+            &#128276; Benachrichtigungseinstellungen
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Kontakte - {{ organization.name }}{% endblock %}
+
+{% block body %}
+<div class="mb-6">
+    <div class="text-sm text-gray-500 mb-2">
+        <a href="{{ path('app_organization_show', {slug: organization.slug}) }}" class="hover:text-indigo-600">{{ organization.name }}</a>
+        <span class="mx-2">/</span>
+        <span>Kontakte</span>
+    </div>
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold text-gray-900">Kontakte</h1>
+        <a href="{{ path('app_org_contact_new', {slug: organization.slug}) }}" class="btn-primary btn-sm">
+            + Neuer Kontakt
+        </a>
+    </div>
+</div>
+
+{# Search #}
+<form method="get" class="mb-6">
+    <div class="flex gap-2">
+        <input type="search" name="q" value="{{ query }}" placeholder="Name, E-Mail oder Unternehmen suchen..."
+               class="form-input flex-1" autofocus>
+        <button type="submit" class="btn-secondary">Suchen</button>
+        {% if query %}
+            <a href="{{ path('app_org_contacts', {slug: organization.slug}) }}" class="btn-secondary">Zurücksetzen</a>
+        {% endif %}
+    </div>
+</form>
+
+{% if contacts is empty %}
+    <div class="card p-10 text-center">
+        <div class="text-4xl mb-3">&#128100;</div>
+        {% if query %}
+            <h3 class="font-medium text-gray-900 mb-2">Keine Kontakte gefunden</h3>
+            <p class="text-gray-500">Versuche einen anderen Suchbegriff.</p>
+        {% else %}
+            <h3 class="font-medium text-gray-900 mb-2">Noch keine Kontakte</h3>
+            <p class="text-gray-500 mb-4">Lege den ersten Kontakt dieser Organisation an.</p>
+            <a href="{{ path('app_org_contact_new', {slug: organization.slug}) }}" class="btn-primary">Kontakt anlegen</a>
+        {% endif %}
+    </div>
+{% else %}
+    <div class="card divide-y divide-gray-100">
+        {% for contact in contacts %}
+            <a href="{{ path('app_org_contact_show', {slug: organization.slug, id: contact.id}) }}"
+               class="flex items-center p-4 hover:bg-gray-50 transition-colors group">
+                {# Avatar #}
+                <div class="w-10 h-10 rounded-full flex items-center justify-center mr-4 flex-shrink-0
+                            {% if contact.avatar %}
+                            {% else %}
+                            bg-indigo-100
+                            {% endif %}">
+                    {% if contact.avatar %}
+                        <img src="{{ asset(contact.avatar) }}" class="w-10 h-10 rounded-full object-cover">
+                    {% else %}
+                        <span class="text-indigo-700 font-bold text-sm">{{ contact.initials }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="flex-1 min-w-0">
+                    <p class="font-medium text-gray-900 group-hover:text-indigo-700">{{ contact.fullName }}</p>
+                    <p class="text-sm text-gray-500 truncate">
+                        {% if contact.position and contact.company %}
+                            {{ contact.position }} &middot; {{ contact.company }}
+                        {% elseif contact.company %}
+                            {{ contact.company }}
+                        {% elseif contact.position %}
+                            {{ contact.position }}
+                        {% endif %}
+                    </p>
+                </div>
+
+                <div class="text-sm text-gray-400 text-right flex-shrink-0 ml-4 space-y-0.5">
+                    {% if contact.email %}
+                        <p>{{ contact.email }}</p>
+                    {% endif %}
+                    {% if contact.phone %}
+                        <p>{{ contact.phone }}</p>
+                    {% endif %}
+                </div>
+
+                {% if contact.customFields|length > 0 %}
+                    <span class="ml-4 text-xs text-gray-300">+{{ contact.customFields|length }} Felder</span>
+                {% endif %}
+            </a>
+        {% endfor %}
+    </div>
+    <p class="text-sm text-gray-400 mt-3 text-right">{{ contacts|length }} Kontakt(e)</p>
+{% endif %}
+{% endblock %}

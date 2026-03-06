@@ -1,0 +1,28 @@
+<div class="card p-5">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold text-gray-900">&#128197; Anstehende Termine</h3>
+    </div>
+    {% if data.events is empty %}
+        <p class="text-sm text-gray-400">Keine Termine in den nächsten 14 Tagen.</p>
+    {% else %}
+        <div class="space-y-3">
+            {% for event in data.events %}
+                <div class="flex items-start space-x-3">
+                    <div class="w-10 text-center flex-shrink-0">
+                        <p class="text-xs text-gray-400 leading-none">{{ event.startAt|date('M') }}</p>
+                        <p class="text-lg font-bold text-indigo-700 leading-tight">{{ event.startAt|date('d') }}</p>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">{{ event.title }}</p>
+                        <p class="text-xs text-gray-400">
+                            {% if event.allDay %}Ganztägig
+                            {% else %}{{ event.startAt|date('H:i') }}{% if event.endAt %} – {{ event.endAt|date('H:i') }}{% endif %}
+                            {% endif %}
+                            {% if event.location %} &middot; {{ event.location }}{% endif %}
+                        </p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>

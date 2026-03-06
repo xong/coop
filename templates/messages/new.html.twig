@@ -1,0 +1,81 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Neue Nachricht{% endblock %}
+
+{% block body %}
+<div class="max-w-lg mx-auto">
+    <div class="mb-6">
+        <a href="{{ path('app_messages') }}" class="text-indigo-600 hover:text-indigo-800 text-sm">&larr; Zurück</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-2">Neue Nachricht</h1>
+    </div>
+
+    {% if candidates is empty %}
+        <div class="card p-8 text-center">
+            <p class="text-gray-500">Du hast noch keine Teammitglieder, denen du schreiben könntest.</p>
+        </div>
+    {% else %}
+        <div class="card p-6">
+            <form method="post" x-data="newMsg()">
+                <input type="hidden" name="_token" value="{{ csrf_token('new_conversation') }}">
+
+                {# Recipient selection #}
+                <div class="mb-4">
+                    <label class="form-label">Empfänger</label>
+                    <div class="space-y-1 max-h-52 overflow-y-auto border border-gray-200 rounded-lg p-2">
+                        {% for user in candidates %}
+                            <label class="flex items-center p-2 rounded hover:bg-gray-50 cursor-pointer">
+                                <input type="checkbox" name="recipients[]" value="{{ user.id }}"
+                                       @change="updateType()"
+                                       {% if preselect == user.id %}checked{% endif %}
+                                       class="rounded border-gray-300 mr-3">
+                                <div class="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center mr-2 flex-shrink-0">
+                                    {% if user.avatar %}
+                                        <img src="{{ asset(user.avatar) }}" class="w-7 h-7 rounded-full object-cover">
+                                    {% else %}
+                                        <span class="text-indigo-700 text-xs font-bold">{{ user.firstName|first }}{{ user.lastName|first }}</span>
+                                    {% endif %}
+                                </div>
+                                <span class="text-sm text-gray-900">{{ user.fullName }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {# Group title (only shown when multiple recipients) #}
+                <div class="mb-4" x-show="isGroup" x-cloak>
+                    <label class="form-label">Gruppenname (optional)</label>
+                    <input type="text" name="title" placeholder="z.B. Projektteam Alpha"
+                           class="form-input w-full">
+                    <input type="hidden" name="type" x-bind:value="isGroup ? 'group' : 'direct'">
+                </div>
+                <template x-if="!isGroup">
+                    <input type="hidden" name="type" value="direct">
+                </template>
+
+                <div class="mb-5">
+                    <label class="form-label">Nachricht</label>
+                    <textarea name="message" rows="5" placeholder="Deine Nachricht..."
+                              class="form-input w-full" required></textarea>
+                </div>
+
+                <div class="flex space-x-3">
+                    <button type="submit" class="btn-primary">Senden</button>
+                    <a href="{{ path('app_messages') }}" class="btn-secondary">Abbrechen</a>
+                </div>
+            </form>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function newMsg() {
+    return {
+        isGroup: {{ preselect ? 'false' : 'false' }},
+        updateType() {
+            const checked = document.querySelectorAll('input[name="recipients[]"]:checked');
+            this.isGroup = checked.length > 1;
+        }
+    }
+}
+</script>
+{% endblock %}

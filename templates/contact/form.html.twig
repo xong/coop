@@ -1,0 +1,170 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ contact.id ? 'Kontakt bearbeiten' : 'Neuer Kontakt' }}{% endblock %}
+
+{% block body %}
+<div class="max-w-3xl mx-auto">
+    <div class="mb-6">
+        <a href="{{ backUrl }}" class="text-indigo-600 hover:text-indigo-800 text-sm">&larr; Zurück</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-2">
+            {{ contact.id ? 'Kontakt bearbeiten' : 'Neuen Kontakt anlegen' }}
+        </h1>
+    </div>
+
+    <div class="card p-6">
+        {{ form_start(form, {attr: {class: 'space-y-5'}}) }}
+
+        {# Basic info #}
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                {{ form_label(form.firstName, null, {label_attr: {class: 'form-label'}}) }}
+                {{ form_widget(form.firstName, {attr: {class: 'form-input'}}) }}
+                {{ form_errors(form.firstName) }}
+            </div>
+            <div>
+                {{ form_label(form.lastName, null, {label_attr: {class: 'form-label'}}) }}
+                {{ form_widget(form.lastName, {attr: {class: 'form-input'}}) }}
+                {{ form_errors(form.lastName) }}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                {{ form_label(form.email, null, {label_attr: {class: 'form-label'}}) }}
+                {{ form_widget(form.email, {attr: {class: 'form-input'}}) }}
+                {{ form_errors(form.email) }}
+            </div>
+            <div>
+                {{ form_label(form.phone, null, {label_attr: {class: 'form-label'}}) }}
+                {{ form_widget(form.phone, {attr: {class: 'form-input'}}) }}
+                {{ form_errors(form.phone) }}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                {{ form_label(form.company, null, {label_attr: {class: 'form-label'}}) }}
+                {{ form_widget(form.company, {attr: {class: 'form-input'}}) }}
+                {{ form_errors(form.company) }}
+            </div>
+            <div>
+                {{ form_label(form.position, null, {label_attr: {class: 'form-label'}}) }}
+                {{ form_widget(form.position, {attr: {class: 'form-input'}}) }}
+                {{ form_errors(form.position) }}
+            </div>
+        </div>
+
+        <div>
+            {{ form_label(form.website, null, {label_attr: {class: 'form-label'}}) }}
+            {{ form_widget(form.website, {attr: {class: 'form-input'}}) }}
+            {{ form_errors(form.website) }}
+        </div>
+
+        <div>
+            {{ form_label(form.address, null, {label_attr: {class: 'form-label'}}) }}
+            {{ form_widget(form.address, {attr: {class: 'form-input'}}) }}
+            {{ form_errors(form.address) }}
+        </div>
+
+        <div>
+            {{ form_label(form.notes, null, {label_attr: {class: 'form-label'}}) }}
+            {{ form_widget(form.notes, {attr: {class: 'form-input'}}) }}
+            {{ form_errors(form.notes) }}
+        </div>
+
+        {# Custom fields (dynamic) #}
+        <div class="border-t border-gray-100 pt-5">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-semibold text-gray-700">Weitere Felder</h3>
+                <button type="button" id="add-custom-field" class="btn-secondary btn-sm">+ Feld hinzufügen</button>
+            </div>
+
+            <div id="custom-fields-container">
+                {% for field in form.customFields %}
+                    <div class="flex gap-2 mb-2 custom-field-row">
+                        <div class="flex-1">{{ form_widget(field.label, {attr: {class: 'form-input'}}) }}</div>
+                        <div class="flex-1">{{ form_widget(field.value, {attr: {class: 'form-input'}}) }}</div>
+                        <button type="button" onclick="this.closest('.custom-field-row').remove()"
+                                class="px-2 text-red-400 hover:text-red-600 flex-shrink-0" title="Entfernen">&#10005;</button>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# Linked projects & topics #}
+        {% if form.linkedProjects.vars.choices is not empty %}
+            <div class="border-t border-gray-100 pt-5">
+                <h3 class="text-sm font-semibold text-gray-700 mb-3">Verknüpfungen (optional)</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        {{ form_label(form.linkedProjects, null, {label_attr: {class: 'form-label'}}) }}
+                        <p class="text-xs text-gray-400 mb-1">Mehrfachauswahl mit Strg/Cmd</p>
+                        {{ form_widget(form.linkedProjects, {attr: {class: 'form-input'}}) }}
+                        {{ form_errors(form.linkedProjects) }}
+                    </div>
+                    <div>
+                        {{ form_label(form.linkedTopics, null, {label_attr: {class: 'form-label'}}) }}
+                        <p class="text-xs text-gray-400 mb-1">Mehrfachauswahl mit Strg/Cmd</p>
+                        {{ form_widget(form.linkedTopics, {attr: {class: 'form-input'}}) }}
+                        {{ form_errors(form.linkedTopics) }}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="flex space-x-3 pt-2">
+            <button type="submit" class="btn-primary">{{ contact.id ? 'Speichern' : 'Kontakt anlegen' }}</button>
+            <a href="{{ backUrl }}" class="btn-secondary">Abbrechen</a>
+        </div>
+
+        {{ form_end(form) }}
+    </div>
+</div>
+
+<script>
+(function () {
+    const formName = '{{ form.vars.name }}';
+    let index = {{ form.customFields|length }};
+
+    document.getElementById('add-custom-field').addEventListener('click', function () {
+        const container = document.getElementById('custom-fields-container');
+
+        const row = document.createElement('div');
+        row.className = 'flex gap-2 mb-2 custom-field-row';
+
+        const labelWrap = document.createElement('div');
+        labelWrap.className = 'flex-1';
+        const labelInput = document.createElement('input');
+        labelInput.type = 'text';
+        labelInput.name = formName + '[customFields][' + index + '][label]';
+        labelInput.placeholder = 'Bezeichnung';
+        labelInput.className = 'form-input';
+        labelWrap.appendChild(labelInput);
+
+        const valueWrap = document.createElement('div');
+        valueWrap.className = 'flex-1';
+        const valueInput = document.createElement('input');
+        valueInput.type = 'text';
+        valueInput.name = formName + '[customFields][' + index + '][value]';
+        valueInput.placeholder = 'Wert';
+        valueInput.className = 'form-input';
+        valueWrap.appendChild(valueInput);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'px-2 text-red-400 hover:text-red-600 flex-shrink-0';
+        removeBtn.title = 'Entfernen';
+        removeBtn.innerHTML = '&#10005;';
+        removeBtn.addEventListener('click', () => row.remove());
+
+        row.appendChild(labelWrap);
+        row.appendChild(valueWrap);
+        row.appendChild(removeBtn);
+        container.appendChild(row);
+
+        labelInput.focus();
+        index++;
+    });
+})();
+</script>
+{% endblock %}

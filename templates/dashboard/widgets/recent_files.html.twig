@@ -1,0 +1,25 @@
+<div class="card p-5">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold text-gray-900">&#128193; Neueste Dateien</h3>
+    </div>
+    {% if data.files is empty %}
+        <p class="text-sm text-gray-400">Noch keine Dateien.</p>
+    {% else %}
+        <div class="space-y-2">
+            {% for file in data.files %}
+                <a href="{{ path('app_file_show', {id: file.id}) }}"
+                   class="flex items-center p-2 rounded-lg hover:bg-gray-50 group">
+                    <span class="text-xl mr-2 flex-shrink-0">{{ file.icon }}</span>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 group-hover:text-indigo-700 truncate">{{ file.originalName }}</p>
+                        <p class="text-xs text-gray-400">
+                            {{ file.organization.name }}
+                            &middot; {{ file.fileSizeFormatted }}
+                            &middot; {{ file.createdAt|date('d.m.') }}
+                        </p>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
