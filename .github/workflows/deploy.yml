@@ -20,24 +20,20 @@ jobs:
 
       - name: Install Composer dependencies (prod)
         run: composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
-        env:
-          APP_ENV: prod
-          APP_SECRET: ${{ secrets.APP_SECRET }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Build Tailwind CSS (minified)
         run: php bin/console tailwind:build --minify
         env:
           APP_ENV: prod
           APP_SECRET: ${{ secrets.APP_SECRET }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: "mysql://ci:ci@127.0.0.1:3306/ci?serverVersion=8.0"
 
       - name: Compile AssetMapper assets
         run: php bin/console asset-map:compile
         env:
           APP_ENV: prod
           APP_SECRET: ${{ secrets.APP_SECRET }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: "mysql://ci:ci@127.0.0.1:3306/ci?serverVersion=8.0"
 
       - name: Deploy via rsync over SSH
         uses: burnett01/rsync-deployments@7.0.1
