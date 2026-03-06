@@ -42,6 +42,7 @@
         "symfony/validator": "7.4.*",
         "symfony/web-link": "7.4.*",
         "symfony/yaml": "7.4.*",
+        "symfonycasts/reset-password-bundle": "^1.24",
         "symfonycasts/tailwind-bundle": "^0.12.0",
         "twig/extra-bundle": "^2.12|^3.0",
         "twig/twig": "^2.12|^3.0",
@@ -108,7 +109,6 @@
         "symfony/maker-bundle": "^1.0",
         "symfony/stopwatch": "7.4.*",
         "symfony/web-profiler-bundle": "7.4.*",
-        "symfonycasts/reset-password-bundle": "^1.24",
         "symfonycasts/verify-email-bundle": "^1.18"
     }
 }
