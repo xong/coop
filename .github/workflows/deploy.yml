@@ -62,5 +62,5 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd ${{ secrets.DEPLOY_PATH }}
-            php bin/console cache:clear --env=prod
-            php bin/console doctrine:migrations:migrate --no-interaction --env=prod
+            php83 bin/console cache:clear --env=prod
+            php83 bin/console doctrine:migrations:migrate --no-interaction --env=prod
